@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import mytimeacty.exception.UserAlreadyExistsException;
@@ -48,6 +49,17 @@ public class UserService {
         return userRepository.findAll().stream()
                              .map(UserMapper::toDTO)
                              .collect(Collectors.toList());
+    }
+    
+    
+    public UserDTO getUserById(int userId) {
+	    return UserMapper.toDTO(userRepository.findById(userId)
+	            .orElseThrow(() -> new UsernameNotFoundException("User not found with ID: " + userId)));
+    }
+    
+    public UserDTO getUserByNickname(String nickname) {
+	    return UserMapper.toDTO(userRepository.findByNickname(nickname)
+	            .orElseThrow(() -> new UsernameNotFoundException("User not found with nickname: " + nickname)));
     }
 
 }
