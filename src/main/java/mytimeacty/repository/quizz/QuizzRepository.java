@@ -1,4 +1,4 @@
-package mytimeacty.repository;
+package mytimeacty.repository.quizz;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;

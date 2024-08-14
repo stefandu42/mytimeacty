@@ -47,30 +47,31 @@ public class JwtAuthenticationFilter implements Filter {
         }
         
         String token = resolveToken(request);
-        UserDTO userFromToken = getUserFromToken(token);
         
-        
-        if (token != null && this.validateToken(token)) {
-        	if (path.startsWith("/admin") && !userFromToken.getUserRole().equals("admin")) {
-        		HttpServletResponse response = (HttpServletResponse) servletResponse;
-                response.sendError(HttpServletResponse.SC_FORBIDDEN, "Forbidden : not good roles");
-            	return;
-            }
-        	if (path.startsWith("/chief") && !userFromToken.getUserRole().equals("chief")) {
-        		HttpServletResponse response = (HttpServletResponse) servletResponse;
-                response.sendError(HttpServletResponse.SC_FORBIDDEN, "Forbidden : not good roles");
-            	return;
-            }
-            Authentication authentication = getAuthentication(userFromToken);
-            if (authentication != null) {
-       
-                SecurityContextHolder.getContext().setAuthentication(authentication);
-            }	
-        }else {
+        if(token == null || !this.validateToken(token)){
             HttpServletResponse response = (HttpServletResponse) servletResponse;
-            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Forbidden : Invalid Token");
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid Token");
             return;
         }
+        
+        UserDTO userFromToken = getUserFromToken(token);
+        
+    
+    	if (path.startsWith("/admin") && !userFromToken.getUserRole().equals("admin")) {
+    		HttpServletResponse response = (HttpServletResponse) servletResponse;
+            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Forbidden : not good roles");
+        	return;
+        }
+    	if (path.startsWith("/chief") && !userFromToken.getUserRole().equals("chief")) {
+    		HttpServletResponse response = (HttpServletResponse) servletResponse;
+            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Forbidden : not good roles");
+        	return;
+        }
+    	
+        Authentication authentication = getAuthentication(userFromToken);
+        if (authentication != null) 
+        	SecurityContextHolder.getContext().setAuthentication(authentication);
+       
 
         filterChain.doFilter(servletRequest, servletResponse);
         
@@ -79,7 +80,7 @@ public class JwtAuthenticationFilter implements Filter {
 	
 	public String resolveToken(HttpServletRequest request) {
 	    String header = request.getHeader("Authorization");
-	    if (header != null && header.startsWith("Bearer ")) {
+	    if (header != null && !header.isBlank() && header.startsWith("Bearer ")) {
 	        return header.substring(7);  
 	    }
 	    return null;

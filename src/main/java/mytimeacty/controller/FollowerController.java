@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 import mytimeacty.exception.UserNotFoundException;
 import mytimeacty.model.users.UserDTO;
 import mytimeacty.service.FollowerService;
+import mytimeacty.utils.SecurityUtils;
 
 @RestController
 @RequestMapping("/followers")
@@ -24,10 +25,7 @@ public class FollowerController {
 
     @PostMapping("/follow")
     public ResponseEntity<String> followUser(@RequestParam Integer idFollower, @RequestParam Integer idUserFollowed) {
-    	Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        UserDTO userFromToken = (UserDTO) authentication.getPrincipal();
-
-        if (!idFollower.equals(userFromToken.getIdUser())) {
+        if (!idFollower.equals(SecurityUtils.getCurrentUser().getIdUser())) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
                     .body("You must be the follower, the identifiers must be identical");
         }
@@ -48,15 +46,12 @@ public class FollowerController {
     
     @DeleteMapping("/unfollow")
     public ResponseEntity<String> unfollowUser(@RequestParam Integer idFollower, @RequestParam Integer idUserFollowed) {
-    	Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        UserDTO userFromToken = (UserDTO) authentication.getPrincipal();
-
-        if (!idFollower.equals(userFromToken.getIdUser())) {
+        if (!idFollower.equals(SecurityUtils.getCurrentUser().getIdUser())) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
                     .body("You must be the follower, the identifiers must be identical");
         }
     	
         followerService.unfollowUser(idFollower, idUserFollowed);
-        return ResponseEntity.noContent().build(); 
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build(); 
     }
 }
