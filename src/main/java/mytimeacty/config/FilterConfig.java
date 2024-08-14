@@ -10,7 +10,7 @@ import mytimeacty.filter.JwtAuthenticationFilter;
 public class FilterConfig {
 
     @Bean
-    JwtAuthenticationFilter myFilter() {
+    JwtAuthenticationFilter jwtAuthenticationFilter() {
 	    return new JwtAuthenticationFilter();
 	}
     
@@ -19,7 +19,7 @@ public class FilterConfig {
 	    
 	  FilterRegistrationBean<JwtAuthenticationFilter> registrationBean = new FilterRegistrationBean(); 
 	    
-	  registrationBean.setFilter(myFilter()); 
+	  registrationBean.setFilter(jwtAuthenticationFilter()); 
 	  registrationBean.setOrder(0);
 	    
 	  return registrationBean; 

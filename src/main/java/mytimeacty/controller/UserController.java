@@ -12,7 +12,7 @@ import mytimeacty.service.UserService;
 
 
 @RestController
-@RequestMapping("/user")
+@RequestMapping("/users")
 public class UserController {
     private UserService userService;
     

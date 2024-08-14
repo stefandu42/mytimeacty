@@ -1,7 +1,5 @@
 package mytimeacty.filter;
 
-//Implementation layer to implement Filter 
-
 import jakarta.servlet.Filter; 
 import jakarta.servlet.FilterChain; 
 import jakarta.servlet.ServletException; 
@@ -11,7 +9,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import mytimeacty.model.users.UserDTO;
 import mytimeacty.service.UserService;
-import mytimeacty.service.JWT.JWTService;
 
 import java.io.IOException;
 import java.util.List;
@@ -28,9 +25,6 @@ import org.springframework.security.oauth2.jwt.JwtException;
 
 
 public class JwtAuthenticationFilter implements Filter { 
-	
-	@Autowired
-    private JWTService jwtService;
 	
 	@Autowired
 	private UserService userService;
@@ -69,6 +63,7 @@ public class JwtAuthenticationFilter implements Filter {
             }
             Authentication authentication = getAuthentication(userFromToken);
             if (authentication != null) {
+       
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             }	
         }else {
@@ -105,7 +100,7 @@ public class JwtAuthenticationFilter implements Filter {
 
        List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(role.toUpperCase()));
 
-       return new UsernamePasswordAuthenticationToken(user.getNickname(), null, authorities);
+       return new UsernamePasswordAuthenticationToken(user, null, authorities);
 	}
 	 
 	 public boolean validateToken(String token) {
