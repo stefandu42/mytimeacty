@@ -7,6 +7,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import mytimeacty.mapper.QuizzMapper;
 import mytimeacty.model.quizzes.Quizz;
 import mytimeacty.model.quizzes.dto.QuizzDTO;
 import mytimeacty.repository.quizz.QuizzRepository;
@@ -21,6 +22,6 @@ public class QuizzService {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
         Page<Quizz> quizzes = quizzRepository.findAll(pageable);
         
-        return quizzes.map(QuizzDTO::new);
+        return quizzes.map(QuizzMapper::toDTO);
     }
 }
