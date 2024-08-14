@@ -36,9 +36,12 @@ public class QuizzController {
 	@GetMapping
     public ResponseEntity<Page<QuizzDTO>> getAllQuizzes(
         @RequestParam(defaultValue = "0") int page, 
-        @RequestParam(defaultValue = "15") int size) {
+        @RequestParam(defaultValue = "15") int size,
+        @RequestParam(required = false) String title,
+        @RequestParam(required = false) String categoryLabel,
+        @RequestParam(required = false) String levelLabel) {
         
-        Page<QuizzDTO> quizzes = quizzService.getQuizzes(page, size);
+        Page<QuizzDTO> quizzes = quizzService.getQuizzes(page, size, title, categoryLabel, levelLabel);
         return ResponseEntity.status(HttpStatus.OK).body(quizzes);
     }
 	
