@@ -55,18 +55,6 @@ public class JwtAuthenticationFilter implements Filter {
         }
         
         UserDTO userFromToken = getUserFromToken(token);
-        
-    
-    	if (path.startsWith("/admin") && !userFromToken.getUserRole().equals("admin")) {
-    		HttpServletResponse response = (HttpServletResponse) servletResponse;
-            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Forbidden : not good roles");
-        	return;
-        }
-    	if (path.startsWith("/chief") && !userFromToken.getUserRole().equals("chief")) {
-    		HttpServletResponse response = (HttpServletResponse) servletResponse;
-            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Forbidden : not good roles");
-        	return;
-        }
     	
         Authentication authentication = getAuthentication(userFromToken);
         if (authentication != null) 

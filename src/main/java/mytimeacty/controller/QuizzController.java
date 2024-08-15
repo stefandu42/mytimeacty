@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import mytimeacty.annotation.RolesAllowed;
 import mytimeacty.model.quizzes.dto.QuizzDTO;
 import mytimeacty.service.quizz.QuizzFavouriteService;
 import mytimeacty.service.quizz.QuizzLikeService;
@@ -66,6 +68,12 @@ public class QuizzController {
     public ResponseEntity<Void> unlikeQuizz(@PathVariable Integer idQuizz) {
         quizzLikeService.unlikeQuizz(SecurityUtils.getCurrentUser().getIdUser(), idQuizz);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build(); 
+    }
+    
+    @RolesAllowed({"admin", "chief"})
+    @GetMapping("/view")
+    public ResponseEntity<String> viewDashboard() {
+        return ResponseEntity.ok("Welcome to the Dashboard accessible by Admins and Chiefs");
     }
 	
 	
