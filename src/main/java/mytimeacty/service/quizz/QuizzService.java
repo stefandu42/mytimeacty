@@ -21,9 +21,41 @@ public class QuizzService {
     private QuizzRepository quizzRepository;
 
     public Page<QuizzDTO> getQuizzes(int page, int size, String title, String nickname, String categoryLabel, String levelLabel) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+    	Pageable pageable = createPageable(page, size);
         
+        Specification<Quizz> spec = applyCommonSpecifications(title, categoryLabel, levelLabel);
         
+        if (nickname != null && spec!=null && !nickname.isBlank()) {
+            spec = spec.and(QuizzSpecifications.hasCreatorWithNickname(nickname));
+        }
+        
+        Page<Quizz> quizzes = quizzRepository.findAll(spec, pageable);
+        
+        return quizzes.map(QuizzMapper::toDTO);
+    }
+    
+    public Page<QuizzDTO> getLikedQuizzes(int userId, int page, int size, String title, String categoryLabel, String levelLabel) {
+        return getFilteredQuizzes(QuizzSpecifications.isLikedByUser(userId), page, size, title, categoryLabel, levelLabel);
+    }
+
+    public Page<QuizzDTO> getFavouriteQuizzes(int userId, int page, int size, String title, String categoryLabel, String levelLabel) {
+        return getFilteredQuizzes(QuizzSpecifications.isFavouritedByUser(userId), page, size, title, categoryLabel, levelLabel);
+    }
+    
+    private Page<QuizzDTO> getFilteredQuizzes(Specification<Quizz> additionalSpec, int page, int size, String title, String categoryLabel, String levelLabel) {
+        Pageable pageable = createPageable(page, size);
+        Specification<Quizz> spec = applyCommonSpecifications(title, categoryLabel, levelLabel);
+        
+        if (additionalSpec != null) {
+            spec = spec.and(additionalSpec);
+        }
+        
+        Page<Quizz> quizzes = quizzRepository.findAll(spec, pageable);
+        return quizzes.map(QuizzMapper::toDTO);
+    }
+    
+    
+    private Specification<Quizz> applyCommonSpecifications(String title, String categoryLabel, String levelLabel) {
         Specification<Quizz> spec = Specification.where(null);
         
         if (categoryLabel != null && !categoryLabel.isBlank()) {
@@ -38,12 +70,10 @@ public class QuizzService {
             spec = spec.and(QuizzSpecifications.hasTitleContaining(title));
         }
         
-        if (nickname != null && !nickname.isBlank()) {
-            spec = spec.and(QuizzSpecifications.hasCreatorWithNickname(nickname));
-        }
-        
-        Page<Quizz> quizzes = quizzRepository.findAll(spec, pageable);
-        
-        return quizzes.map(QuizzMapper::toDTO);
+        return spec;
+    }
+    
+    private Pageable createPageable(int page, int size) {
+        return PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
     }
 }

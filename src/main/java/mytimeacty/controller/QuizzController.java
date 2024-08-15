@@ -45,6 +45,34 @@ public class QuizzController {
         return ResponseEntity.status(HttpStatus.OK).body(quizzes);
     }
 	
+	@GetMapping("/likes/users/{idUser}")
+	public ResponseEntity<Page<QuizzDTO>> getLikedQuizzes(
+		@PathVariable int idUser,
+	    @RequestParam(defaultValue = "0") int page, 
+	    @RequestParam(defaultValue = "15") int size,
+	    @RequestParam(required = false) String title,
+	    @RequestParam(required = false) String categoryLabel,
+	    @RequestParam(required = false) String levelLabel) {
+	    
+	    Page<QuizzDTO> quizzes = quizzService.getLikedQuizzes(idUser, page, size, title, categoryLabel, levelLabel);
+	    
+	    return ResponseEntity.status(HttpStatus.OK).body(quizzes);
+	}
+	
+	@GetMapping("/favourites/users/{idUser}")
+	public ResponseEntity<Page<QuizzDTO>> getFavouriteQuizzes(
+		@PathVariable int idUser,
+	    @RequestParam(defaultValue = "0") int page, 
+	    @RequestParam(defaultValue = "15") int size,
+	    @RequestParam(required = false) String title,
+	    @RequestParam(required = false) String categoryLabel,
+	    @RequestParam(required = false) String levelLabel) {
+	    
+	    Page<QuizzDTO> quizzes = quizzService.getFavouriteQuizzes(idUser, page, size, title, categoryLabel, levelLabel);
+	    
+	    return ResponseEntity.status(HttpStatus.OK).body(quizzes);
+	}
+	
 	@PostMapping("/favourite/{idQuizz}")
 	public ResponseEntity<String> favouriteQuizz(@PathVariable Integer idQuizz) {
 	    quizzFavouriteService.favouriteQuizz(SecurityUtils.getCurrentUser().getIdUser(), idQuizz);

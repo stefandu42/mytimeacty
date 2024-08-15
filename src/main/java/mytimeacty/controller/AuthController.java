@@ -23,7 +23,7 @@ public class AuthController {
 	private AuthenticationService authenticationService;
 	
 	@PostMapping("/login")
-	public ResponseEntity<String> getToken(@RequestBody LoginDTO loginDTO) {
+	public ResponseEntity<String> getToken(@Valid @RequestBody LoginDTO loginDTO) {
 		try {
             String token = authenticationService.authenticateUser(loginDTO);
             return ResponseEntity.ok(token);
