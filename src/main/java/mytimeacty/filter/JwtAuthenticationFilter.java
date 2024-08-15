@@ -72,7 +72,6 @@ public class JwtAuthenticationFilter implements Filter {
         if (authentication != null) 
         	SecurityContextHolder.getContext().setAuthentication(authentication);
        
-
         filterChain.doFilter(servletRequest, servletResponse);
         
 	} 

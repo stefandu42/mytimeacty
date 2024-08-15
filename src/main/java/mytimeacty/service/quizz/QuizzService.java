@@ -20,22 +20,26 @@ public class QuizzService {
     @Autowired
     private QuizzRepository quizzRepository;
 
-    public Page<QuizzDTO> getQuizzes(int page, int size, String title, String categoryLabel, String levelLabel) {
+    public Page<QuizzDTO> getQuizzes(int page, int size, String title, String nickname, String categoryLabel, String levelLabel) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
         
         
         Specification<Quizz> spec = Specification.where(null);
         
-        if (categoryLabel != null && !categoryLabel.isEmpty()) {
+        if (categoryLabel != null && !categoryLabel.isBlank()) {
             spec = spec.and(QuizzSpecifications.hasCategoryLabel(categoryLabel));
         }
 
-        if (levelLabel != null && !levelLabel.isEmpty()) {
+        if (levelLabel != null && !levelLabel.isBlank()) {
             spec = spec.and(QuizzSpecifications.hasLevelLabel(levelLabel));
         }
         
-        if (title != null && !title.isEmpty()) {
+        if (title != null && !title.isBlank()) {
             spec = spec.and(QuizzSpecifications.hasTitleContaining(title));
+        }
+        
+        if (nickname != null && !nickname.isBlank()) {
+            spec = spec.and(QuizzSpecifications.hasCreatorWithNickname(nickname));
         }
         
         Page<Quizz> quizzes = quizzRepository.findAll(spec, pageable);

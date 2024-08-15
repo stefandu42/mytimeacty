@@ -9,21 +9,15 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import mytimeacty.exception.UserAlreadyExistsException;
+import jakarta.validation.Valid;
 import mytimeacty.exception.UserNotFoundException;
 import mytimeacty.model.auth.LoginDTO;
 import mytimeacty.model.users.UserCreateDTO;
-import mytimeacty.model.users.UserDTO;
 import mytimeacty.service.AuthenticationService;
-import mytimeacty.service.UserService;
 
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
-	
-	@Autowired
-	private UserService userService;
 	
 	@Autowired
 	private AuthenticationService authenticationService;
@@ -40,12 +34,8 @@ public class AuthController {
 
 	
 	@PostMapping("/register")
-    public ResponseEntity<String> createUserAndGetToken(@RequestBody UserCreateDTO userCreateDTO) {
-		try {
-			String token = authenticationService.registerUser(userCreateDTO);
-	        return ResponseEntity.ok(token);
-		} catch (UserAlreadyExistsException e) {
-	        return ResponseEntity.status(HttpStatus.CONFLICT).body(null);
-	    }
+    public ResponseEntity<String> createUserAndGetToken(@Valid @RequestBody UserCreateDTO userCreateDTO) {
+		String token = authenticationService.registerUser(userCreateDTO);
+	    return ResponseEntity.status(HttpStatus.OK).body(token);
     }
 }

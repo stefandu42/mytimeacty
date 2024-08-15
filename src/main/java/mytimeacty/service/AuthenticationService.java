@@ -31,8 +31,11 @@ public class AuthenticationService {
     private JWTService jwtService;
 	
 	public String authenticateUser(LoginDTO loginDTO) throws UserNotFoundException, AuthenticationException {
-        User user = userRepository.findByEmailOrNickname(loginDTO.getNicknameOrEmail(), loginDTO.getNicknameOrEmail())
-                                  .orElseThrow(() -> new UserNotFoundException("User not found"));
+		loginDTO.setNicknameOrEmail(loginDTO.getNicknameOrEmail().trim()); 
+		
+		User user = userRepository.findByEmailIgnoreCase(loginDTO.getNicknameOrEmail())
+                .orElseGet(() -> userRepository.findByNicknameIgnoreCase(loginDTO.getNicknameOrEmail())
+                .orElseThrow(() -> new UserNotFoundException("User not found")));
 
         if (!bcryptPasswordEncoder.matches(loginDTO.getPassword(), user.getPassword()))
         	throw new AuthenticationException("Invalid credentials");
@@ -41,6 +44,9 @@ public class AuthenticationService {
     }
 	
 	public String registerUser(UserCreateDTO createDTO) {
+		createDTO.setEmail(createDTO.getEmail().trim());
+		createDTO.setNickname(createDTO.getNickname().trim());
+		
 		UserDTO userSaved = userService.createUser(createDTO);
 		
 			

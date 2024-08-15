@@ -19,4 +19,9 @@ public class QuizzSpecifications {
         return (root, query, builder) -> 
             builder.like(builder.lower(root.get("title")), "%" + title.toLowerCase() + "%");
     }
+    
+    public static Specification<Quizz> hasCreatorWithNickname(String nickname) {
+        return (root, query, builder) -> 
+            builder.like(builder.lower(root.get("creator").get("nickname")), "%" + nickname.toLowerCase() + "%");
+    }
 }

@@ -28,8 +28,9 @@ public class UserService {
     
 
     public UserDTO createUser(UserCreateDTO userCreateDTO) {
-        if (userRepository.findByEmailOrNickname(userCreateDTO.getEmail(), userCreateDTO.getNickname()).isPresent()) {
-            throw new UserAlreadyExistsException("Email already in use");
+        if (userRepository.findByEmailIgnoreCase(userCreateDTO.getEmail()).isPresent() || 
+        		userRepository.findByNicknameIgnoreCase(userCreateDTO.getNickname()).isPresent()) {
+            throw new UserAlreadyExistsException("Email or nickname already in use");
         }
         
     	
