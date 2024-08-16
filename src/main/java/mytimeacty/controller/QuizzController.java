@@ -8,12 +8,15 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import jakarta.validation.Valid;
 import mytimeacty.annotation.RolesAllowed;
 import mytimeacty.model.quizzes.dto.QuizzDTO;
+import mytimeacty.model.quizzes.dto.creation.QuizzCreateDTO;
 import mytimeacty.service.quizz.QuizzFavouriteService;
 import mytimeacty.service.quizz.QuizzLikeService;
 import mytimeacty.service.quizz.QuizzService;
@@ -31,6 +34,12 @@ public class QuizzController {
 	
 	@Autowired
     private QuizzService quizzService;
+	
+	@PostMapping
+    public ResponseEntity<QuizzDTO> createQuizz(@Valid @RequestBody QuizzCreateDTO quizzCreationDTO) {
+        QuizzDTO createdQuizz = quizzService.createQuizz(quizzCreationDTO);
+        return ResponseEntity.status(HttpStatus.CREATED).body(createdQuizz);
+    }
 	
 	@GetMapping
     public ResponseEntity<Page<QuizzDTO>> getAllQuizzes(

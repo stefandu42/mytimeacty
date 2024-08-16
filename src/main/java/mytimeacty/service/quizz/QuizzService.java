@@ -8,17 +8,94 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import mytimeacty.exception.NotFoundException;
+import mytimeacty.exception.UserNotFoundException;
 import mytimeacty.mapper.QuizzMapper;
 import mytimeacty.model.quizzes.Quizz;
+import mytimeacty.model.quizzes.QuizzAnswer;
+import mytimeacty.model.quizzes.QuizzCategory;
+import mytimeacty.model.quizzes.QuizzLevel;
+import mytimeacty.model.quizzes.QuizzQuestion;
 import mytimeacty.model.quizzes.dto.QuizzDTO;
+import mytimeacty.model.quizzes.dto.creation.AnswerCreateDTO;
+import mytimeacty.model.quizzes.dto.creation.QuestionCreateDTO;
+import mytimeacty.model.quizzes.dto.creation.QuizzCreateDTO;
+import mytimeacty.model.users.User;
+import mytimeacty.repository.UserRepository;
+import mytimeacty.repository.quizz.QuizzAnswerRepository;
+import mytimeacty.repository.quizz.QuizzCategoryRepository;
+import mytimeacty.repository.quizz.QuizzLevelRepository;
+import mytimeacty.repository.quizz.QuizzQuestionRepository;
 import mytimeacty.repository.quizz.QuizzRepository;
 import mytimeacty.specification.QuizzSpecifications;
+import mytimeacty.utils.SecurityUtils;
 
 @Service
 public class QuizzService {
 
     @Autowired
     private QuizzRepository quizzRepository;
+    
+    @Autowired
+    private QuizzQuestionRepository quizzQuestionRepository;
+
+    @Autowired
+    private QuizzAnswerRepository quizzAnswerRepository;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private QuizzLevelRepository quizzLevelRepository;
+
+    @Autowired
+    private QuizzCategoryRepository quizzCategoryRepository;
+    
+    
+    public QuizzDTO createQuizz(QuizzCreateDTO quizzCreationDTO) {
+        // Get entities binded
+        User creator = userRepository.findById(SecurityUtils.getCurrentUser().getIdUser())
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
+        QuizzLevel level = quizzLevelRepository.findById(quizzCreationDTO.getLevelId())
+                .orElseThrow(() -> new NotFoundException("Quizz not found"));
+        QuizzCategory category = quizzCategoryRepository.findById(quizzCreationDTO.getCategoryId())
+                .orElseThrow(() -> new NotFoundException("Category not found"));
+
+        // Build the quizz
+        Quizz quizz = Quizz.builder()
+                .title(quizzCreationDTO.getTitle())
+                .creator(creator)
+                .level(level)
+                .category(category)
+                .img(quizzCreationDTO.getImg())
+                .build();
+
+        quizz = quizzRepository.save(quizz);
+
+        // Build questions and answers
+        for (QuestionCreateDTO questionDTO : quizzCreationDTO.getQuestions()) {
+            QuizzQuestion question = QuizzQuestion.builder()
+                    .question(questionDTO.getQuestion())
+                    .numQuestion(questionDTO.getNumQuestion())
+                    .quizz(quizz)
+                    .build();
+
+            question = quizzQuestionRepository.save(question);
+
+            for (AnswerCreateDTO answerDTO : questionDTO.getAnswers()) {
+                QuizzAnswer answer = QuizzAnswer.builder()
+                        .answer(answerDTO.getAnswer())
+                        .numAnswer(answerDTO.getNumAnswer())
+                        .isCorrect(answerDTO.getIsCorrect())
+                        .question(question)
+                        .build();
+
+                quizzAnswerRepository.save(answer);
+            }
+        }
+
+        return QuizzMapper.toDTO(quizz);
+    }
 
     public Page<QuizzDTO> getQuizzes(int page, int size, String title, String nickname, String categoryLabel, String levelLabel) {
     	Pageable pageable = createPageable(page, size);
