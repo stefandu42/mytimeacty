@@ -66,5 +66,8 @@ public class Quizz {
     
     @OneToMany(mappedBy = "quizz", fetch = FetchType.LAZY)
     private Set<QuizzFavourite> quizzFavourites;
+    
+    @OneToMany(mappedBy = "quizz")
+    private Set<QuizzQuestion> quizzQuestions;
 
 }

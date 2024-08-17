@@ -6,6 +6,7 @@ import mytimeacty.model.quizzes.Quizz;
 import mytimeacty.model.users.User;
 
 import java.time.Instant;
+import java.util.Set;
 
 @Data
 @NoArgsConstructor
@@ -33,4 +34,7 @@ public class QuizzPlay {
 
     @Column(name = "played_at", nullable = false)
     private Instant playedAt;
+    
+    @OneToMany(mappedBy = "quizzPlay", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private Set<UserAnswer> userAnswers;
 }
