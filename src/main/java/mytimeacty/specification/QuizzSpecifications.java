@@ -42,4 +42,8 @@ public class QuizzSpecifications {
             return builder.equal(favouriteJoin.get("user").get("idUser"), userId);
         };
     }
+    
+    public static Specification<Quizz> isVisible() {
+        return (root, query, criteriaBuilder) -> criteriaBuilder.isTrue(root.get("isVisible"));
+    }
 }

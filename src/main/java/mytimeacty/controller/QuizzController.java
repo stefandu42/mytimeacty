@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -113,5 +114,11 @@ public class QuizzController {
         return ResponseEntity.ok("Welcome to the Dashboard accessible by Admins and Chiefs");
     }
 	
+    @RolesAllowed({"admin", "chief"})
+    @PutMapping("/{quizId}/hide")
+    public ResponseEntity<String> hideQuiz(@PathVariable int quizId) {
+        quizzService.markQuizAsHidden(quizId);
+        return ResponseEntity.status(HttpStatus.OK).body("Quiz hidden successfully");
+    }
 	
 }

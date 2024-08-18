@@ -52,13 +52,21 @@ public class QuizzService {
     @Autowired
     private QuizzCategoryRepository quizzCategoryRepository;
     
+    public void markQuizAsHidden(int quizId) {
+        Quizz quiz = quizzRepository.findById(quizId)
+            .orElseThrow(() -> new NotFoundException("Quiz not found"));
+
+        quiz.setIsVisible(false);
+        quizzRepository.save(quiz);
+    }
+    
     
     public QuizzDTO createQuizz(QuizzCreateDTO quizzCreationDTO) {
         // Get entities binded
         User creator = userRepository.findById(SecurityUtils.getCurrentUser().getIdUser())
                 .orElseThrow(() -> new UserNotFoundException("User not found"));
         QuizzLevel level = quizzLevelRepository.findById(quizzCreationDTO.getLevelId())
-                .orElseThrow(() -> new NotFoundException("Quizz not found"));
+                .orElseThrow(() -> new NotFoundException("Level not found"));
         QuizzCategory category = quizzCategoryRepository.findById(quizzCreationDTO.getCategoryId())
                 .orElseThrow(() -> new NotFoundException("Category not found"));
 
@@ -68,6 +76,7 @@ public class QuizzService {
                 .creator(creator)
                 .level(level)
                 .category(category)
+                .isVisible(true)
                 .img(quizzCreationDTO.getImg())
                 .build();
 
@@ -147,6 +156,9 @@ public class QuizzService {
         if (title != null && !title.isBlank()) {
             spec = spec.and(QuizzSpecifications.hasTitleContaining(title));
         }
+        
+        Specification<Quizz> isVisibleSpec = QuizzSpecifications.isVisible();
+        spec = (spec == null) ? isVisibleSpec : spec.and(isVisibleSpec);
         
         return spec;
     }

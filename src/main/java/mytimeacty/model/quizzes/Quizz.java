@@ -49,6 +49,9 @@ public class Quizz {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_category", nullable = false)
     private QuizzCategory category;
+    
+    @Column(name = "is_visible", nullable = false)
+    private Boolean isVisible;
 
     @Column(name = "img", nullable = true)
     private String img;
