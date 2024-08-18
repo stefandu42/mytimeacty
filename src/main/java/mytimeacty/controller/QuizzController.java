@@ -52,6 +52,7 @@ public class QuizzController {
         @RequestParam(required = false) String levelLabel) {
         
         Page<QuizzDTO> quizzes = quizzService.getQuizzes(page, size, title, nickname, categoryLabel, levelLabel);
+        
         return ResponseEntity.status(HttpStatus.OK).body(quizzes);
     }
 	
