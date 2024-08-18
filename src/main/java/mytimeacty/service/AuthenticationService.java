@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import mytimeacty.exception.ForbiddenException;
 import mytimeacty.exception.UserNotFoundException;
 import mytimeacty.mapper.UserMapper;
 import mytimeacty.model.auth.LoginDTO;
@@ -36,6 +37,9 @@ public class AuthenticationService {
 		User user = userRepository.findByEmailIgnoreCase(loginDTO.getNicknameOrEmail())
                 .orElseGet(() -> userRepository.findByNicknameIgnoreCase(loginDTO.getNicknameOrEmail())
                 .orElseThrow(() -> new UserNotFoundException("User not found")));
+		
+		if(user.getUserRole().equals("banned"))
+			throw new ForbiddenException("You are banned");
 
         if (!bcryptPasswordEncoder.matches(loginDTO.getPassword(), user.getPassword()))
         	throw new AuthenticationException("Invalid credentials");

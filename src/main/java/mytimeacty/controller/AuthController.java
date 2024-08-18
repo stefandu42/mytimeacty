@@ -26,7 +26,7 @@ public class AuthController {
 	public ResponseEntity<String> getToken(@Valid @RequestBody LoginDTO loginDTO) {
 		try {
             String token = authenticationService.authenticateUser(loginDTO);
-            return ResponseEntity.ok(token);
+            return ResponseEntity.status(HttpStatus.OK).body(token);
         } catch (UserNotFoundException | AuthenticationException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid nickname/email or wrong password");
         }

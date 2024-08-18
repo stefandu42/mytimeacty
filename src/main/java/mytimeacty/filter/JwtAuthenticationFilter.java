@@ -39,6 +39,7 @@ public class JwtAuthenticationFilter implements Filter {
 		throws IOException, ServletException{ 
 
 		HttpServletRequest request = (HttpServletRequest) servletRequest;
+		HttpServletResponse response = (HttpServletResponse) servletResponse;
         String path = request.getRequestURI();
 
         if (path.startsWith("/auth")) {
@@ -49,12 +50,16 @@ public class JwtAuthenticationFilter implements Filter {
         String token = resolveToken(request);
         
         if(token == null || !this.validateToken(token)){
-            HttpServletResponse response = (HttpServletResponse) servletResponse;
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid Token");
             return;
         }
         
         UserDTO userFromToken = getUserFromToken(token);
+        
+        if(userFromToken.getUserRole().equals("banned")){
+            response.sendError(HttpServletResponse.SC_FORBIDDEN, "You are banned");
+            return;
+        }
     	
         Authentication authentication = getAuthentication(userFromToken);
         if (authentication != null) 
