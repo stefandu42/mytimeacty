@@ -28,6 +28,7 @@ import mytimeacty.repository.quizz.QuizzLevelRepository;
 import mytimeacty.repository.quizz.QuizzQuestionRepository;
 import mytimeacty.repository.quizz.QuizzRepository;
 import mytimeacty.specification.QuizzSpecifications;
+import mytimeacty.utils.PaginationUtils;
 import mytimeacty.utils.SecurityUtils;
 
 @Service
@@ -98,7 +99,7 @@ public class QuizzService {
     }
 
     public Page<QuizzDTO> getQuizzes(int page, int size, String title, String nickname, String categoryLabel, String levelLabel) {
-    	Pageable pageable = createPageable(page, size);
+    	Pageable pageable = PaginationUtils.createPageableSortByDesc(page, size, "createdAt");
         
         Specification<Quizz> spec = applyCommonSpecifications(title, categoryLabel, levelLabel);
         
@@ -120,7 +121,7 @@ public class QuizzService {
     }
     
     private Page<QuizzDTO> getFilteredQuizzes(Specification<Quizz> additionalSpec, int page, int size, String title, String categoryLabel, String levelLabel) {
-        Pageable pageable = createPageable(page, size);
+        Pageable pageable = PaginationUtils.createPageableSortByDesc(page, size, "createdAt");
         Specification<Quizz> spec = applyCommonSpecifications(title, categoryLabel, levelLabel);
         
         if (additionalSpec != null) {
@@ -148,9 +149,5 @@ public class QuizzService {
         }
         
         return spec;
-    }
-    
-    private Pageable createPageable(int page, int size) {
-        return PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
     }
 }

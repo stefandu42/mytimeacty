@@ -10,14 +10,13 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import jakarta.validation.Valid;
 import mytimeacty.model.quizzplay.dto.QuizzPlayDTO;
-import mytimeacty.model.quizzplay.dto.creation.QuizzPlayCreateDTO;
 import mytimeacty.model.quizzplay.dto.creation.UserAnswerCreateDTO;
 import mytimeacty.service.quizzplay.QuizzPlayService;
-import mytimeacty.service.quizzplay.UserAnswerService;
+import org.springframework.data.domain.Page;
 
 @RestController
 @RequestMapping("/quizz-play")
@@ -27,7 +26,7 @@ public class QuizzPlayController {
     private QuizzPlayService quizzPlayService;
     
     
-    @PostMapping("/quizzes/{quizzId}/answers")
+    @PostMapping("/quizzes/{quizzId}")
     public ResponseEntity<String> submitUserAnswers(
             @PathVariable Integer quizzId, 
             @RequestBody List<UserAnswerCreateDTO> userAnswerCreateDTOs) {
@@ -35,16 +34,14 @@ public class QuizzPlayController {
         quizzPlayService.handleUserAnswers(quizzId, userAnswerCreateDTOs);
         return ResponseEntity.status(HttpStatus.CREATED).body("Quizz play and answers created successfully.");
     }
+    
+    @GetMapping("/quizzes/{quizzId}/plays")
+    public ResponseEntity<Page<QuizzPlayDTO>> getQuizzPlaysByQuizz(
+            @PathVariable Integer quizzId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "15") int size) {
 
-    @GetMapping("/users/{userId}")
-    public ResponseEntity<List<QuizzPlayDTO>> getUserQuizzPlays(@PathVariable Integer userId) {
-        List<QuizzPlayDTO> quizzPlayDTOs = quizzPlayService.getQuizzPlaysByUser(userId);
-        return ResponseEntity.status(HttpStatus.OK).body(quizzPlayDTOs);
-    }
-
-    @GetMapping("/{id}")
-    public ResponseEntity<QuizzPlayDTO> getQuizzPlayById(@PathVariable Integer id) {
-        QuizzPlayDTO quizzPlayDTO = quizzPlayService.getQuizzPlayById(id);
-        return ResponseEntity.status(HttpStatus.OK).body(quizzPlayDTO);
+        Page<QuizzPlayDTO> quizzPlayDTOs = quizzPlayService.getQuizzPlaysByQuizz(quizzId, page, size);
+        return ResponseEntity.ok(quizzPlayDTOs);
     }
 }

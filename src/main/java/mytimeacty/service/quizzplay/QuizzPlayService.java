@@ -1,12 +1,14 @@
 package mytimeacty.service.quizzplay;
 
 import java.time.Instant;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,7 +28,9 @@ import mytimeacty.repository.quizz.QuizzAnswerRepository;
 import mytimeacty.repository.quizz.QuizzRepository;
 import mytimeacty.repository.quizzplay.QuizzPlayRepository;
 import mytimeacty.repository.quizzplay.UserAnswerRepository;
+import mytimeacty.utils.PaginationUtils;
 import mytimeacty.utils.SecurityUtils;
+import org.springframework.data.domain.Pageable;
 
 @Service
 public class QuizzPlayService {
@@ -45,20 +49,13 @@ public class QuizzPlayService {
     
     @Autowired
     private UserAnswerRepository userAnswerRepository;
-
-    public List<QuizzPlayDTO> getQuizzPlaysByUser(Integer userId) {
-        return quizzPlayRepository.findByPlayerIdUser(userId)
-        		.stream()
-        		.map(QuizzPlayMapper::toDTO)
-        		.collect(Collectors.toList());
-    }
-
-    public QuizzPlayDTO getQuizzPlayById(Integer id) {
-        QuizzPlay quizzPlay = quizzPlayRepository.findById(id)
-                                                 .orElseThrow(() -> new NotFoundException("Quizz Play not found"));
-        return QuizzPlayMapper.toDTO(quizzPlay);
-    }
     
+    public Page<QuizzPlayDTO> getQuizzPlaysByQuizz(Integer quizzId, int page, int size) {
+        Pageable pageable = PaginationUtils.createPageableSortByDesc(page, size, "playedAt");
+        Page<QuizzPlay> quizzPlays = quizzPlayRepository.findByQuizzIdQuizz(quizzId, pageable);
+
+        return quizzPlays.map(QuizzPlayMapper::toDTO);
+    }
 
     @Transactional
     public void handleUserAnswers(Integer quizzId, List<UserAnswerCreateDTO> userAnswerCreateDTOs) {
