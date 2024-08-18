@@ -7,7 +7,7 @@ import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import mytimeacty.model.users.UserDTO;
+import mytimeacty.model.users.dto.UserDTO;
 import mytimeacty.service.UserService;
 
 import java.io.IOException;

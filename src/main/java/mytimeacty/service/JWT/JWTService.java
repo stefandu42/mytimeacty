@@ -14,7 +14,7 @@ import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.security.oauth2.jwt.JwtException;
 import org.springframework.stereotype.Service;
 
-import mytimeacty.model.users.UserDTO;
+import mytimeacty.model.users.dto.UserDTO;
 
 @Service
 public class JWTService {

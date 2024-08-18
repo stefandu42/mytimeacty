@@ -13,4 +13,8 @@ public class PaginationUtils {
 	public static Pageable createPageableSortByDesc(int page, int size, String sortBy) {
         return PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, sortBy));
     }
+	
+	public static Pageable createPageableSortByAsc(int page, int size, String sortBy) {
+        return PageRequest.of(page, size, Sort.by(Sort.Direction.ASC, sortBy));
+    }
 }

@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 import jakarta.validation.Valid;
 import mytimeacty.exception.UserNotFoundException;
 import mytimeacty.model.auth.LoginDTO;
-import mytimeacty.model.users.UserCreateDTO;
+import mytimeacty.model.users.dto.creation.UserCreateDTO;
 import mytimeacty.service.AuthenticationService;
 
 @RestController

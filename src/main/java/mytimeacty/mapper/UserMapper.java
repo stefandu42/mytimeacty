@@ -1,7 +1,7 @@
 package mytimeacty.mapper;
 
 import mytimeacty.model.users.User;
-import mytimeacty.model.users.UserDTO;
+import mytimeacty.model.users.dto.UserDTO;
 
 public class UserMapper {
 

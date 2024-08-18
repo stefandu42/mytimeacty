@@ -2,6 +2,7 @@ package mytimeacty.repository;
 
 import mytimeacty.model.followers.Follower;
 import mytimeacty.model.followers.FollowerId;
+import mytimeacty.model.users.User;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -17,6 +18,13 @@ public interface FollowerRepository extends JpaRepository<Follower, FollowerId> 
     // To get subscriptions (those that I follow)
     Page<Follower> findByFollowerIdUser(Integer idFollower, Pageable pageable);
     
-    int countByUserFollowedIdUser(Integer idUserFollowed);  // count followers
-    int countByFollowerIdUser(Integer idFollower);  // count subscriptions
+    // To count followers
+    int countByUserFollowedIdUser(Integer idUserFollowed);  
+    
+    // To count subscriptions
+    int countByFollowerIdUser(Integer idFollower);  
+    
+    long countByUserFollowed(User user);
+    
+    boolean existsByFollowerAndUserFollowed(User follower, User userFollowed);
 }

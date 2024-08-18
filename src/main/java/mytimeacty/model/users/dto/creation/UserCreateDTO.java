@@ -1,4 +1,4 @@
-package mytimeacty.model.users;
+package mytimeacty.model.users.dto.creation;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;

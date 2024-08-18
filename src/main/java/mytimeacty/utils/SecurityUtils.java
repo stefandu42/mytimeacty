@@ -3,7 +3,7 @@ package mytimeacty.utils;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-import mytimeacty.model.users.UserDTO;
+import mytimeacty.model.users.dto.UserDTO;
 
 public class SecurityUtils {
 

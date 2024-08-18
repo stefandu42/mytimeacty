@@ -10,8 +10,8 @@ import mytimeacty.exception.UserNotFoundException;
 import mytimeacty.mapper.UserMapper;
 import mytimeacty.model.auth.LoginDTO;
 import mytimeacty.model.users.User;
-import mytimeacty.model.users.UserCreateDTO;
-import mytimeacty.model.users.UserDTO;
+import mytimeacty.model.users.dto.UserDTO;
+import mytimeacty.model.users.dto.creation.UserCreateDTO;
 import mytimeacty.repository.UserRepository;
 import mytimeacty.service.JWT.JWTService;
 
