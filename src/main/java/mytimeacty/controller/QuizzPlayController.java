@@ -48,7 +48,7 @@ public class QuizzPlayController {
             @RequestParam(defaultValue = "15") int size) {
 
         Page<QuizzPlayDTO> quizzPlayDTOs = quizzPlayService.getQuizzPlaysByQuizz(quizzId, page, size);
-        return  ResponseEntity.status(HttpStatus.OK).body(quizzPlayDTOs);
+        return ResponseEntity.status(HttpStatus.OK).body(quizzPlayDTOs);
     }
     
     @GetMapping("/{quizzPlayId}/answers")
@@ -56,6 +56,6 @@ public class QuizzPlayController {
             @PathVariable Integer quizzPlayId) {
 
         List<UserAnswerDTO> userAnswerDTOs = userAnswerService.getAnswersByQuizzPlay(quizzPlayId);
-        return  ResponseEntity.status(HttpStatus.OK).body(userAnswerDTOs);
+        return ResponseEntity.status(HttpStatus.OK).body(userAnswerDTOs);
     }
 }

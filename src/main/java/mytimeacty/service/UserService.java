@@ -9,9 +9,12 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import mytimeacty.exception.UserAlreadyExistsException;
+import mytimeacty.exception.UserNotFoundException;
 import mytimeacty.model.users.User;
 import mytimeacty.model.users.UserCreateDTO;
 import mytimeacty.model.users.UserDTO;
+import mytimeacty.model.users.UserProfileDTO;
+import mytimeacty.repository.FollowerRepository;
 import mytimeacty.repository.UserRepository;
 import mytimeacty.service.Bcrypt.BcryptService;
 import mytimeacty.mapper.UserMapper;
@@ -24,6 +27,9 @@ public class UserService {
     
     @Autowired
     private BcryptService bcryptService;
+    
+    @Autowired
+    private FollowerRepository followerRepository;
     
     
 
@@ -61,6 +67,23 @@ public class UserService {
     public UserDTO getUserByNickname(String nickname) {
 	    return UserMapper.toDTO(userRepository.findByNickname(nickname)
 	            .orElseThrow(() -> new UsernameNotFoundException("User not found with nickname: " + nickname)));
+    }
+    
+    public UserProfileDTO getUserProfile(Integer userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
+
+        // get the number of followers and subscriptions
+        int followersCount = followerRepository.countByUserFollowedIdUser(userId);
+        int followingCount = followerRepository.countByFollowerIdUser(userId);
+
+        return UserProfileDTO.builder()
+                .userId(user.getIdUser())
+                .nickname(user.getNickname())
+                .email(user.getEmail())
+                .followersCount(followersCount)
+                .followingCount(followingCount)
+                .build();
     }
 
 }

@@ -16,4 +16,7 @@ public interface FollowerRepository extends JpaRepository<Follower, FollowerId> 
 
     // To get subscriptions (those that I follow)
     Page<Follower> findByFollowerIdUser(Integer idFollower, Pageable pageable);
+    
+    int countByUserFollowedIdUser(Integer idUserFollowed);  // count followers
+    int countByFollowerIdUser(Integer idFollower);  // count subscriptions
 }
