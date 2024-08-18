@@ -29,8 +29,15 @@ public class UserAnswerService {
 
     @Autowired
     private UserAnswerRepository userAnswerRepository;
+    
+    @Autowired
+    private QuizzPlayRepository quizzPlayRepository;
 
     public List<UserAnswerDTO> getAnswersByQuizzPlay(Integer quizzPlayId) {
+        if (!quizzPlayRepository.existsById(quizzPlayId)) {
+            throw new NotFoundException("Quizz play not found");
+        }
+    	
         return userAnswerRepository.findByQuizzPlayIdQuizzPlay(quizzPlayId)
         		.stream()
         		.map(UserAnswerMapper::toDTO)

@@ -14,8 +14,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import mytimeacty.model.quizzplay.dto.QuizzPlayDTO;
+import mytimeacty.model.quizzplay.dto.UserAnswerDTO;
 import mytimeacty.model.quizzplay.dto.creation.UserAnswerCreateDTO;
 import mytimeacty.service.quizzplay.QuizzPlayService;
+import mytimeacty.service.quizzplay.UserAnswerService;
+
 import org.springframework.data.domain.Page;
 
 @RestController
@@ -24,6 +27,9 @@ public class QuizzPlayController {
 	
 	@Autowired
     private QuizzPlayService quizzPlayService;
+	
+	@Autowired
+    private UserAnswerService userAnswerService;
     
     
     @PostMapping("/quizzes/{quizzId}")
@@ -42,6 +48,14 @@ public class QuizzPlayController {
             @RequestParam(defaultValue = "15") int size) {
 
         Page<QuizzPlayDTO> quizzPlayDTOs = quizzPlayService.getQuizzPlaysByQuizz(quizzId, page, size);
-        return ResponseEntity.ok(quizzPlayDTOs);
+        return  ResponseEntity.status(HttpStatus.OK).body(quizzPlayDTOs);
+    }
+    
+    @GetMapping("/{quizzPlayId}/answers")
+    public ResponseEntity<List<UserAnswerDTO>> getUserAnswersByQuizzPlay(
+            @PathVariable Integer quizzPlayId) {
+
+        List<UserAnswerDTO> userAnswerDTOs = userAnswerService.getAnswersByQuizzPlay(quizzPlayId);
+        return  ResponseEntity.status(HttpStatus.OK).body(userAnswerDTOs);
     }
 }
