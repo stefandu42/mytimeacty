@@ -14,6 +14,7 @@ public class UserMapper {
                 .email(user.getEmail())
                 .nickname(user.getNickname())
                 .userRole(user.getUserRole())
+                .previousRole(user.getUserPreviousRole())
                 .createdAt(user.getCreatedAt())
                 .build();
     }

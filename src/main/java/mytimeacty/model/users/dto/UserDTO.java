@@ -12,5 +12,6 @@ public class UserDTO {
     private String email;
     private String nickname;
     private String userRole;
+    private String previousRole;
     private Instant createdAt;
 }

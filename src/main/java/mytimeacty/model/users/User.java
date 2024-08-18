@@ -39,6 +39,9 @@ public class User {
     @Column(name = "user_role", nullable = false)
     private String userRole;
     
+    @Column(name = "user_previous_role", nullable = false)
+    private String userPreviousRole;
+    
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant  createdAt;
 
