@@ -19,6 +19,7 @@ import mytimeacty.model.users.dto.UserDTO;
 import mytimeacty.model.users.dto.UserDetailsDTO;
 import mytimeacty.model.users.dto.UserProfileDTO;
 import mytimeacty.model.users.dto.creation.UserCreateDTO;
+import mytimeacty.model.users.enums.UserRole;
 import mytimeacty.repository.FollowerRepository;
 import mytimeacty.repository.UserRepository;
 import mytimeacty.repository.quizz.QuizzLikeRepository;
@@ -26,6 +27,7 @@ import mytimeacty.service.Bcrypt.BcryptService;
 import mytimeacty.utils.PaginationUtils;
 import mytimeacty.utils.SecurityUtils;
 import mytimeacty.mapper.UserMapper;
+import java.util.concurrent.CompletableFuture;
 
 @Service
 public class UserService {
@@ -82,9 +84,9 @@ public class UserService {
         List<User> users = userRepository.findByNicknameContainingIgnoreCase(nickname.trim(), pageable);
         User currentUser = this.getUserByIdData(SecurityUtils.getCurrentUser().getIdUser());
         
-        List<UserDetailsDTO> userDetailsDTOs = users.stream()
+        List<CompletableFuture<UserDetailsDTO>> futures = users.stream()
                 .filter(user -> !user.getIdUser().equals(currentUser.getIdUser()))
-                .map(user -> {
+                .map(user -> CompletableFuture.supplyAsync(() -> {
                     boolean isFollowedByCurrentUser = followerRepository.existsByFollowerAndUserFollowed(currentUser, user);
                     int quizLikesCount = (int) quizzLikeRepository.countByUser(user);
                     int followersCount = (int) followerRepository.countByUserFollowed(user);
@@ -97,8 +99,13 @@ public class UserService {
                             .quizLikesCount(quizLikesCount)
                             .followersCount(followersCount)
                             .build();
-                })
+                }))
                 .collect(Collectors.toList());
+        
+        List<UserDetailsDTO> userDetailsDTOs = futures.stream()
+                .map(CompletableFuture::join) // Wait for all futures to complete
+                .collect(Collectors.toList());
+        
         return new PageImpl<>(userDetailsDTOs, pageable, userDetailsDTOs.size());
     }
     
@@ -161,7 +168,7 @@ public class UserService {
         
         validateRoleChangeBanAndUban(currentUser, user, "ban");
         
-        updateUserRole(user, "banned");
+        updateUserRole(user, UserRole.BANNED.getRole());
     }
 
     /**
@@ -176,7 +183,7 @@ public class UserService {
         
         validateRoleChangeBanAndUban(currentUser, user, "unban");
         
-        updateUserRole(user, user.getUserPreviousRole());
+        updateUserRole(user, UserRole.fromString(user.getUserPreviousRole()).getRole());
 	}
 	
 	/**
@@ -192,28 +199,28 @@ public class UserService {
 	        throw new ForbiddenException("You cannot change your own role");
 	    }
 
-	    if (currentUser.getUserRole().equals("user")) {
+	    if (currentUser.getUserRole().equals(UserRole.USER.getRole())) {
 	        throw new ForbiddenException("Users are not allowed to " + action + " users");
 	    }
 
 	    // Role-specific checks
 	    if (action.equals("ban")) {
-	    	if(targetUser.getUserRole().equals("banned"))
+	    	if(targetUser.getUserRole().equals(UserRole.BANNED.getRole()))
 	        	throw new ForbiddenException("User is already banned");
 	    	
-	        if (currentUser.getUserRole().equals("admin") && 
-	            (targetUser.getUserRole().equals("admin") || targetUser.getUserRole().equals("chief"))) {
+	        if (currentUser.getUserRole().equals(UserRole.ADMIN.getRole()) && 
+	            (targetUser.getUserRole().equals(UserRole.ADMIN.getRole()) || targetUser.getUserRole().equals(UserRole.CHIEF.getRole()))) {
 	            throw new ForbiddenException("Admins can only ban users");
 	        }
 	        
-	        if (currentUser.getUserRole().equals("chief") && targetUser.getUserRole().equals("chief")) {
+	        if (currentUser.getUserRole().equals(UserRole.CHIEF.getRole()) && targetUser.getUserRole().equals(UserRole.CHIEF.getRole())) {
 	            throw new ForbiddenException("Chiefs can only ban users and admins");
 	        }
 	    } else if (action.equals("unban")) {
-	    	if(!targetUser.getUserRole().equals("banned"))
+	    	if(!targetUser.getUserRole().equals(UserRole.BANNED.getRole()))
 	        	throw new ForbiddenException("User is not banned");
 	    	
-	        if (currentUser.getUserRole().equals("admin") && !targetUser.getUserPreviousRole().equals("user")) {
+	        if (currentUser.getUserRole().equals(UserRole.ADMIN.getRole()) && !targetUser.getUserPreviousRole().equals(UserRole.USER.getRole())) {
 	            throw new ForbiddenException("Admins can only unban users");
 	        }
 	    }
@@ -231,9 +238,9 @@ public class UserService {
 	    User user = getUserByIdData(userId);
 	    User currentUser = getUserByIdData(SecurityUtils.getCurrentUser().getIdUser());
 	    
-	    validateRoleChangePromoteAndDemote(currentUser, user, "user");
+	    validateRoleChangePromoteAndDemote(currentUser, user, UserRole.USER.getRole());
 	    
-	    updateUserRole(user, "admin");
+	    updateUserRole(user, UserRole.ADMIN.getRole());
 	}
 
 	/**
@@ -248,9 +255,9 @@ public class UserService {
 	    User user = getUserByIdData(userId);
 	    User currentUser = getUserByIdData(SecurityUtils.getCurrentUser().getIdUser());
 	    
-	    validateRoleChangePromoteAndDemote(currentUser, user, "admin");
+	    validateRoleChangePromoteAndDemote(currentUser, user, UserRole.ADMIN.getRole());
 	    
-	    updateUserRole(user, "chief");
+	    updateUserRole(user, UserRole.CHIEF.getRole());
 	}
 
 	/**
@@ -265,9 +272,9 @@ public class UserService {
 	    User user = getUserByIdData(userId);
 	    User currentUser = getUserByIdData(SecurityUtils.getCurrentUser().getIdUser());
 	    
-	    validateRoleChangePromoteAndDemote(currentUser, user, "admin");
+	    validateRoleChangePromoteAndDemote(currentUser, user, UserRole.ADMIN.getRole());
 	    
-	    updateUserRole(user, "user");
+	    updateUserRole(user, UserRole.USER.getRole());
 	}
     
     /**
@@ -296,7 +303,7 @@ public class UserService {
      */
     private void updateUserRole(User user, String newRole) {
         user.setUserPreviousRole(user.getUserRole());
-        user.setUserRole(newRole);
+        user.setUserRole(UserRole.fromString(newRole).getRole());
         userRepository.save(user);
     }
 

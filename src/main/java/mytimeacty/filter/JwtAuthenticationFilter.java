@@ -8,6 +8,7 @@ import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import mytimeacty.model.users.dto.UserDTO;
+import mytimeacty.model.users.enums.UserRole;
 import mytimeacty.service.UserService;
 
 import java.io.IOException;
@@ -66,7 +67,7 @@ public class JwtAuthenticationFilter implements Filter {
         
         UserDTO userFromToken = getUserFromToken(token);
         
-        if(userFromToken.getUserRole().equals("banned")){
+        if(userFromToken.getUserRole().equals(UserRole.BANNED.getRole())){
             response.sendError(HttpServletResponse.SC_FORBIDDEN, "You are banned");
             return;
         }

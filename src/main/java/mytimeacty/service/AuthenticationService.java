@@ -13,6 +13,7 @@ import mytimeacty.model.auth.LoginDTO;
 import mytimeacty.model.users.User;
 import mytimeacty.model.users.dto.UserDTO;
 import mytimeacty.model.users.dto.creation.UserCreateDTO;
+import mytimeacty.model.users.enums.UserRole;
 import mytimeacty.repository.UserRepository;
 import mytimeacty.service.JWT.JWTService;
 
@@ -49,7 +50,7 @@ public class AuthenticationService {
                 .orElseThrow(() -> new UserNotFoundException("User not found")));
 		
 		// Check if the user is banned
-		if(user.getUserRole().equals("banned"))
+		if(user.getUserRole().equals(UserRole.BANNED.getRole()))
 			throw new ForbiddenException("You are banned");
 
 		// Validate the provided password

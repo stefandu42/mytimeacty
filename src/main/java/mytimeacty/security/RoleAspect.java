@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component;
 
 import mytimeacty.annotation.RolesAllowed;
 import mytimeacty.model.users.dto.UserDTO;
+import mytimeacty.model.users.enums.UserRole;
 import mytimeacty.utils.SecurityUtils;
 
 @Aspect
@@ -29,7 +30,7 @@ public class RoleAspect {
         boolean hasRole = false;
 
         for (String role : rolesAllowed.value()) {
-            if (user.getUserRole().equals(role)) {
+            if (user.getUserRole().equals(UserRole.fromString(role).getRole())) {
                 hasRole = true;
                 break;
             }
