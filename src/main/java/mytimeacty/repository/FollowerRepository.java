@@ -31,28 +31,20 @@ public interface FollowerRepository extends JpaRepository<Follower, FollowerId> 
     Page<Follower> findByFollowerIdUser(Integer idFollower, Pageable pageable);
     
     /**
-     * Counts the number of followers for a specific user.
-     * 
-     * @param idUserFollowed the ID of the user being followed.
-     * @return the number of followers for the specified user.
-     */
-    int countByUserFollowedIdUser(Integer idUserFollowed);  
-    
-    /**
-     * Counts the number of subscriptions (followings) for a specific user.
-     * 
-     * @param idFollower the ID of the user whose subscriptions are to be counted.
-     * @return the number of subscriptions for the specified user.
-     */
-    int countByFollowerIdUser(Integer idFollower);  
-    
-    /**
      * Counts the number of followers for a given user entity.
      * 
      * @param user the User entity for which to count followers.
      * @return the number of followers associated with the specified user entity.
      */
     long countByUserFollowed(User user);
+    
+    /**
+     * Counts the number of subscribers (followings) for a given user entity.
+     * 
+     * @param user the User entity for which to count followings.
+     * @return the number of followings associated with the specified user entity.
+     */
+    long countByFollower(User user);
     
     /**
      * Checks if there is an existing follower relationship between two users.

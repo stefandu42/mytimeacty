@@ -43,6 +43,13 @@ public class UserService {
     private FollowerRepository followerRepository;
     
 
+    /**
+     * Creates a new user with the provided details.
+     *
+     * @param userCreateDTO the DTO containing the details of the user to be created
+     * @return the created UserDTO
+     * @throws UserAlreadyExistsException if the email or nickname is already in use
+     */
     public UserDTO createUser(UserCreateDTO userCreateDTO) {
         if (userRepository.findByEmailIgnoreCase(userCreateDTO.getEmail()).isPresent() || 
         		userRepository.findByNicknameIgnoreCase(userCreateDTO.getNickname()).isPresent()) {
@@ -62,6 +69,14 @@ public class UserService {
         return UserMapper.toDTO(savedUser);
     }
     
+    /**
+     * Get a paginated list of users filtered by nickname.
+     *
+     * @param nickname the nickname to filter users by
+     * @param page the page number to retrieve (zero-based)
+     * @param size the number of items per page
+     * @return a page of UserDetailsDTO objects
+     */
     public Page<UserDetailsDTO> getFilteredUsers(String nickname, int page, int size) {
         Pageable pageable = PaginationUtils.createPageableSortByAsc(page, size, "nickname");
         List<User> users = userRepository.findByNicknameContainingIgnoreCase(nickname.trim(), pageable);
@@ -87,22 +102,43 @@ public class UserService {
         return new PageImpl<>(userDetailsDTOs, pageable, userDetailsDTOs.size());
     }
     
+    /**
+     * Get a user by their ID.
+     *
+     * @param userId the ID of the user to retrieve
+     * @return the User found
+     * @throws NotFoundException if the user is not found
+     */
     private User getUserByIdData(int userId) {
     	return userRepository.findById(userId)
     			.orElseThrow(() -> new NotFoundException("User not found"));
     }
     
+    /**
+     * Get a user by their ID.
+     *
+     * @param userId the ID of the user to retrieve
+     * @return the UserDTO of the user
+     * @throws NotFoundException if the user is not found
+     */
     public UserDTO getUserById(int userId) {
 	    return UserMapper.toDTO(this.getUserByIdData(userId));
     }
     
+    /**
+     * Get the profile of a user by their ID.
+     *
+     * @param userId the ID of the user whose profile to retrieve
+     * @return the UserProfileDTO containing profile details
+     * @throws UserNotFoundException if the user is not found
+     */
     public UserProfileDTO getUserProfile(int userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException("User not found"));
 
         // get the number of followers and subscriptions
-        int followersCount = followerRepository.countByUserFollowedIdUser(userId);
-        int followingCount = followerRepository.countByFollowerIdUser(userId);
+        int followersCount = (int) followerRepository.countByUserFollowed(user);
+        int followingCount = (int) followerRepository.countByFollower(user);
 
         return UserProfileDTO.builder()
                 .userId(user.getIdUser())
@@ -113,32 +149,45 @@ public class UserService {
                 .build();
     }
     
+    /**
+     * Bans a user, changing their role to "banned".
+     *
+     * @param userId the ID of the user to ban
+     * @throws ForbiddenException if the current user does not have permission to ban the target user
+     */
     public void banUser(int userId) {
         User user = this.getUserByIdData(userId);
         User currentUser = this.getUserByIdData(SecurityUtils.getCurrentUser().getIdUser());
-        String userCurrentRole = user.getUserRole();
         
-        validateRoleChange(currentUser, user, "ban");
+        validateRoleChangeBanAndUban(currentUser, user, "ban");
         
-        user.setUserPreviousRole(userCurrentRole);
-        user.setUserRole("banned");
-        userRepository.save(user);
+        updateUserRole(user, "banned");
     }
 
+    /**
+     * Unbans a user, restoring their previous role.
+     *
+     * @param userId the ID of the user to unban
+     * @throws ForbiddenException if the current user does not have permission to unban the target user
+     */
 	public void unbanUser(int userId) {
 		User user = this.getUserByIdData(userId);
         User currentUser = this.getUserByIdData(SecurityUtils.getCurrentUser().getIdUser());
         
-        String userPreviousRole = user.getUserPreviousRole();
+        validateRoleChangeBanAndUban(currentUser, user, "unban");
         
-        validateRoleChange(currentUser, user, "unban");
-        
-        user.setUserPreviousRole("banned");
-        user.setUserRole(userPreviousRole);
-        userRepository.save(user);
+        updateUserRole(user, user.getUserPreviousRole());
 	}
 	
-	private void validateRoleChange(User currentUser, User targetUser, String action) {
+	/**
+     * Validates role changes for user management actions like ban and unban.
+     *
+     * @param currentUser the current authenticated user
+     * @param targetUser the user whose role is being changed
+     * @param action the action being performed (e.g., "ban", "unban")
+     * @throws ForbiddenException if the current user does not have permission to perform the action
+     */
+	private void validateRoleChangeBanAndUban(User currentUser, User targetUser, String action) {
 	    if (targetUser.getIdUser().equals(currentUser.getIdUser())) {
 	        throw new ForbiddenException("You cannot change your own role");
 	    }
@@ -149,7 +198,7 @@ public class UserService {
 
 	    // Role-specific checks
 	    if (action.equals("ban")) {
-	    	if(currentUser.getUserRole().equals("banned"))
+	    	if(targetUser.getUserRole().equals("banned"))
 	        	throw new ForbiddenException("User is already banned");
 	    	
 	        if (currentUser.getUserRole().equals("admin") && 
@@ -161,7 +210,7 @@ public class UserService {
 	            throw new ForbiddenException("Chiefs can only ban users and admins");
 	        }
 	    } else if (action.equals("unban")) {
-	    	if(!currentUser.getUserRole().equals("banned"))
+	    	if(!targetUser.getUserRole().equals("banned"))
 	        	throw new ForbiddenException("User is not banned");
 	    	
 	        if (currentUser.getUserRole().equals("admin") && !targetUser.getUserPreviousRole().equals("user")) {
@@ -170,63 +219,84 @@ public class UserService {
 	    }
 	}
 	
+	/**
+	 * Promotes a user to the "admin" role.
+	 * 
+	 * This method checks if the target user is eligible to be promoted to "admin".
+	 * 
+	 * @param userId The ID of the user to be promoted to admin.
+	 * @throws ForbiddenException If the target user is not eligible for promotion.
+	 */
 	public void promoteUserToAdmin(int userId) {
-        User user = getUserByIdData(userId);
-        User currentUser = getUserByIdData(SecurityUtils.getCurrentUser().getIdUser());
-        
-        if(user.getIdUser().equals(currentUser.getIdUser()))
-        	throw new ForbiddenException("You cannot change your own role");
+	    User user = getUserByIdData(userId);
+	    User currentUser = getUserByIdData(SecurityUtils.getCurrentUser().getIdUser());
+	    
+	    validateRoleChangePromoteAndDemote(currentUser, user, "user");
+	    
+	    updateUserRole(user, "admin");
+	}
 
-        if (!currentUser.getUserRole().equals("chief")) {
-            throw new ForbiddenException("Only chiefs can promote users to admin");
+	/**
+	 * Promotes an admin to the "chief" role.
+	 * 
+	 * This method checks if the target admin is eligible to be promoted to "chief".
+	 * 
+	 * @param userId The ID of the admin to be promoted to chief.
+	 * @throws ForbiddenException If the target admin is not eligible for promotion.
+	 */
+	public void promoteAdminToChief(int userId) {
+	    User user = getUserByIdData(userId);
+	    User currentUser = getUserByIdData(SecurityUtils.getCurrentUser().getIdUser());
+	    
+	    validateRoleChangePromoteAndDemote(currentUser, user, "admin");
+	    
+	    updateUserRole(user, "chief");
+	}
+
+	/**
+	 * Demotes an admin to the "user" role.
+	 * 
+	 * This method checks if the target admin is eligible to be demoted to "user".
+	 * 
+	 * @param userId The ID of the admin to be demoted to user.
+	 * @throws ForbiddenException If the target admin is not eligible for demotion.
+	 */
+	public void demoteAdminToUser(int userId) {
+	    User user = getUserByIdData(userId);
+	    User currentUser = getUserByIdData(SecurityUtils.getCurrentUser().getIdUser());
+	    
+	    validateRoleChangePromoteAndDemote(currentUser, user, "admin");
+	    
+	    updateUserRole(user, "user");
+	}
+    
+    /**
+     * Validates if the current user can change the target user's role.
+     *
+     * @param currentUser The current user performing the role change.
+     * @param targetUser The target user whose role is being changed.
+     * @param requiredRoleForTarget The role required for the target user.
+     * @throws ForbiddenException If the role change conditions are not met.
+     */
+    private void validateRoleChangePromoteAndDemote(User currentUser, User targetUser, String requiredRoleForTarget) {
+        if (targetUser.getIdUser().equals(currentUser.getIdUser())) {
+            throw new ForbiddenException("You cannot change your own role");
         }
 
-        if (user.getUserRole().equals("admin") || user.getUserRole().equals("chief")) {
-            throw new ForbiddenException("User is already an admin or chief");
+        if (!targetUser.getUserRole().equals(requiredRoleForTarget)) {
+            throw new ForbiddenException("Only " + requiredRoleForTarget + "s can be promoted/demoted to this role");
         }
-
-        user.setUserPreviousRole(user.getUserRole());
-        user.setUserRole("admin");
-        userRepository.save(user);
     }
-
-    public void promoteAdminToChief(int userId) {
-        User user = getUserByIdData(userId);
-        User currentUser = getUserByIdData(SecurityUtils.getCurrentUser().getIdUser());
-        
-        if(user.getIdUser().equals(currentUser.getIdUser()))
-        	throw new ForbiddenException("You cannot change your own role");
-
-        if (!currentUser.getUserRole().equals("chief")) {
-            throw new ForbiddenException("Only chiefs can promote admins to chief");
-        }
-
-        if (!user.getUserRole().equals("admin")) {
-            throw new ForbiddenException("Only admins can be promoted to chief");
-        }
-
+    
+    /**
+     * Updates the user's role while saving the previous role.
+     *
+     * @param user The user whose role is being updated.
+     * @param newRole The new role to assign to the user.
+     */
+    private void updateUserRole(User user, String newRole) {
         user.setUserPreviousRole(user.getUserRole());
-        user.setUserRole("chief");
-        userRepository.save(user);
-    }
-
-    public void demoteAdminToUser(int userId) {
-        User user = getUserByIdData(userId);
-        User currentUser = getUserByIdData(SecurityUtils.getCurrentUser().getIdUser());
-        
-        if(user.getIdUser().equals(currentUser.getIdUser()))
-        	throw new ForbiddenException("You cannot change your own role");
-
-        if (!currentUser.getUserRole().equals("chief")) {
-            throw new ForbiddenException("Only chiefs can demote admins to user");
-        }
-
-        if (!user.getUserRole().equals("admin")) {
-            throw new ForbiddenException("Only admins can be demoted to user");
-        }
-
-        user.setUserPreviousRole(user.getUserRole());
-        user.setUserRole("user");
+        user.setUserRole(newRole);
         userRepository.save(user);
     }
 
