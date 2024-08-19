@@ -9,5 +9,12 @@ import mytimeacty.model.users.User;
 
 @Repository
 public interface QuizzLikeRepository extends JpaRepository<QuizzLike, QuizzLikeId> {
+	
+	/**
+	 * Counts the number of occurrences associated with a specific user.
+	 * 
+	 * @param user the User entity for which to count occurrences.
+	 * @return the number of occurrences associated with the specified user.
+	 */
 	long countByUser(User user);
 }

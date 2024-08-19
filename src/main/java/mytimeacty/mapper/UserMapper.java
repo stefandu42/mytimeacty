@@ -5,6 +5,12 @@ import mytimeacty.model.users.dto.UserDTO;
 
 public class UserMapper {
 
+	/**
+	 * Converts a User entity to a UserDTO.
+	 * 
+	 * @param user the User entity to be converted.
+	 * @return a UserDTO representing the user's information, or null if the input user is null.
+	 */
     public static UserDTO toDTO(User user) {
         if (user == null) {
             return null;

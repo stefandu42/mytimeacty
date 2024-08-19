@@ -12,6 +12,16 @@ import mytimeacty.utils.SecurityUtils;
 @Component
 public class RoleAspect {
 
+	/**
+	 * Aspect method that checks if the current user has the required roles before executing a method.
+	 * 
+	 * This method is triggered by the @RolesAllowed annotation. It checks if the currently authenticated user
+	 * has one of the roles specified in the annotation. If the user does not have the required role, a 
+	 * SecurityException is thrown.
+	 * 
+	 * @param rolesAllowed the @RolesAllowed annotation containing the list of allowed roles.
+	 * @throws SecurityException if the user does not have the necessary role to execute the method.
+	 */
     @Before("@annotation(rolesAllowed)")
     public void checkRolesAllowed(RolesAllowed rolesAllowed) {
         UserDTO user = SecurityUtils.getCurrentUser();

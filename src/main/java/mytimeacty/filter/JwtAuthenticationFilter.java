@@ -32,6 +32,16 @@ public class JwtAuthenticationFilter implements Filter {
 	@Autowired
     private JwtDecoder jwtDecoder;
 	
+	/**
+	 * Custom filter for handling authentication and authorization.
+	 * This filter checks the validity of JWT tokens and manages user roles.
+	 * 
+	 * @param servletRequest the request to be processed.
+	 * @param servletResponse the response to be sent.
+	 * @param filterChain the filter chain to pass the request and response through.
+	 * @throws IOException if an I/O error occurs during filtering.
+	 * @throws ServletException if a servlet error occurs during filtering.
+	 */
 	@Override
 	public void doFilter(ServletRequest servletRequest, 
 						ServletResponse servletResponse, 
@@ -69,16 +79,26 @@ public class JwtAuthenticationFilter implements Filter {
         
 	} 
 	 
-	
+	/**
+	 * Resolves the JWT token from the Authorization header.
+	 * 
+	 * @param request the HTTP request from which to extract the token.
+	 * @return the JWT token, or null if not present or invalid.
+	 */
 	public String resolveToken(HttpServletRequest request) {
-	    String header = request.getHeader("Authorization");
+		String header = request.getHeader("Authorization");
 	    if (header != null && !header.isBlank() && header.startsWith("Bearer ")) {
 	        return header.substring(7);  
 	    }
 	    return null;
 	}
 	
-	
+	/**
+	 * Retrieves user details from the JWT token.
+	 * 
+	 * @param token the JWT token containing user information.
+	 * @return a UserDTO object with user details.
+	 */
 	public UserDTO getUserFromToken(String token) {
 		Jwt jwt = this.getJwtFromToken(token);
 
@@ -88,25 +108,42 @@ public class JwtAuthenticationFilter implements Filter {
 	    return user;
 	}
 	
+	/**
+	 * Creates an Authentication object based on user details and roles.
+	 * 
+	 * @param user the UserDTO object containing user details.
+	 * @return an Authentication object for the user.
+	 */
 	 public Authentication getAuthentication(UserDTO user) {
-       String role = user.getUserRole();
+		 String role = user.getUserRole();
 
-       List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(role.toUpperCase()));
-
-       return new UsernamePasswordAuthenticationToken(user, null, authorities);
-	}
+		 List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(role.toUpperCase()));
+		 return new UsernamePasswordAuthenticationToken(user, null, authorities);
+	 }
 	 
+	 /**
+	  * Validates the JWT token by decoding it.
+	  * 
+	  * @param token the JWT token to be validated.
+	  * @return true if the token is valid, false otherwise.
+	  */
 	 public boolean validateToken(String token) {
-       try {
-           jwtDecoder.decode(token);
-           return true;
-       } catch (JwtException | IllegalArgumentException e) {
-           return false;
-       }
-   }
-	
-	public Jwt getJwtFromToken(String token) {
-       return jwtDecoder.decode(token);  
-	}
+		 try {
+			 jwtDecoder.decode(token);
+			 return true;
+		 } catch (JwtException | IllegalArgumentException e) {
+			 return false;
+		 }
+	 }
+	 
+	 /**
+	  * Decodes the JWT token to extract its claims.
+	  * 
+	  * @param token the JWT token to be decoded.
+	  * @return a Jwt object representing the decoded token.
+	  */
+	 public Jwt getJwtFromToken(String token) {
+		return jwtDecoder.decode(token);  
+	 }
    
 }

@@ -50,6 +50,16 @@ public class QuizzPlayService {
     @Autowired
     private UserAnswerRepository userAnswerRepository;
     
+    /**
+     * Retrieves a paginated list of `QuizzPlayDTO` objects associated with a specific quizz.
+     * The results are sorted in descending order based on the `playedAt` timestamp.
+     *
+     * @param quizzId the ID of the quizz for which plays are to be retrieved
+     * @param page the page number to retrieve
+     * @param size the size of the page
+     * @return a page of `QuizzPlayDTO` objects
+     * @throws NotFoundException if the quizz is not found
+     */
     public Page<QuizzPlayDTO> getQuizzPlaysByQuizz(Integer quizzId, int page, int size) {
         Pageable pageable = PaginationUtils.createPageableSortByDesc(page, size, "playedAt");
         Page<QuizzPlay> quizzPlays = quizzPlayRepository.findByQuizzIdQuizz(quizzId, pageable);
@@ -57,6 +67,16 @@ public class QuizzPlayService {
         return quizzPlays.map(QuizzPlayMapper::toDTO);
     }
 
+    /**
+     * Handles the process of recording user answers for a specific quizz.
+     * This method validates that all questions have been answered and calculates the score for the quizz play.
+     * It then saves the user's quizz play and the corresponding answers.
+     *
+     * @param quizzId the ID of the quizz being played
+     * @param userAnswerCreateDTOs a list of `UserAnswerCreateDTO` objects representing the user's answers
+     * @throws NotFoundException if the quizz or any answer is not found
+     * @throws IllegalArgumentException if not all questions have been answered or if an answer does not belong to the quizz
+     */
     @Transactional
     public void handleUserAnswers(Integer quizzId, List<UserAnswerCreateDTO> userAnswerCreateDTOs) {
         Quizz quizz = quizzRepository.findById(quizzId)

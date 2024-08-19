@@ -25,6 +25,18 @@ public class QuizzFavouriteService {
     @Autowired
     private QuizzFavouriteRepository quizzFavouriteRepository;
 
+    /**
+     * Adds a quizz to the user's list of favourites.
+     * 
+     * This method checks if the quizz and user exist in the database. If both are valid and the quizz
+     * is not already marked as a favourite by the user, it creates a new `QuizzFavourite` entity
+     * and saves it to the repository.
+     * 
+     * @param userId the ID of the user who wants to favourite the quizz
+     * @param quizzId the ID of the quizz to be favourited
+     * @throws NotFoundException if the quizz is not found
+     * @throws UserNotFoundException if the user is not found
+     */
     public void favouriteQuizz(Integer userId, Integer quizzId) {
     	Quizz quizz = quizzRepository.findById(quizzId)
                 .orElseThrow(() -> new NotFoundException("Quizz not found"));
@@ -38,6 +50,15 @@ public class QuizzFavouriteService {
         }
     }
 
+    /**
+     * Removes a quizz from the user's list of favourites.
+     * 
+     * This method deletes the `QuizzFavourite` entity identified by the user ID and quizz ID,
+     * effectively removing the quizz from the user's favourites list.
+     * 
+     * @param userId the ID of the user who wants to unfavourite the quizz
+     * @param quizzId the ID of the quizz to be unfavourited
+     */
     public void unfavouriteQuizz(Integer userId, Integer quizzId) {
         QuizzFavouriteId quizzFavouriteId = new QuizzFavouriteId(quizzId, userId);
         quizzFavouriteRepository.deleteById(quizzFavouriteId);

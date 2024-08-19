@@ -51,6 +51,12 @@ public class QuizzService {
     @Autowired
     private QuizzCategoryRepository quizzCategoryRepository;
     
+    /**
+     * Marks a quiz as hidden by setting the `isVisible` attribute to false.
+     * 
+     * @param quizId the ID of the quizz to be hidden
+     * @throws NotFoundException if the quizz is not found
+     */
     public void markQuizAsHidden(int quizId) {
         Quizz quiz = quizzRepository.findById(quizId)
             .orElseThrow(() -> new NotFoundException("Quiz not found"));
@@ -59,6 +65,16 @@ public class QuizzService {
         quizzRepository.save(quiz);
     }
     
+    /**
+     * Creates a new quizz based on the provided `QuizzCreateDTO` data.
+     * This method handles the creation of the quizz, its questions, and the associated answers.
+     * The quizz is marked as visible by default.
+     * 
+     * @param quizzCreationDTO the data transfer object containing the quizz details
+     * @return the created `QuizzDTO`
+     * @throws UserNotFoundException if the creator (current user) is not found
+     * @throws NotFoundException if the level or category is not found
+     */
     @Transactional
     public QuizzDTO createQuizz(QuizzCreateDTO quizzCreationDTO) {
         // Get entities binded
@@ -105,7 +121,20 @@ public class QuizzService {
 
         return QuizzMapper.toDTO(quizz);
     }
-
+    
+    /**
+     * Retrieves a paginated list of quizzes based on various filters.
+     * Filters include title, creator nickname, category, and level. 
+     * Only quizzes marked as visible are included.
+     * 
+     * @param page the page number to retrieve
+     * @param size the size of the page
+     * @param title the title filter (optional)
+     * @param nickname the creator's nickname filter (optional)
+     * @param categoryLabel the category label filter (optional)
+     * @param levelLabel the level label filter (optional)
+     * @return a page of `QuizzDTO` objects
+     */
     public Page<QuizzDTO> getQuizzes(int page, int size, String title, String nickname, String categoryLabel, String levelLabel) {
     	Pageable pageable = PaginationUtils.createPageableSortByDesc(page, size, "createdAt");
         
@@ -120,14 +149,48 @@ public class QuizzService {
         return quizzes.map(QuizzMapper::toDTO);
     }
     
+    /**
+     * Retrieves a paginated list of quizzes liked by the specified user.
+     * 
+     * @param userId the ID of the user who liked the quizzes
+     * @param page the page number to retrieve
+     * @param size the size of the page
+     * @param title the title filter (optional)
+     * @param categoryLabel the category label filter (optional)
+     * @param levelLabel the level label filter (optional)
+     * @return a page of `QuizzDTO` objects
+     */
     public Page<QuizzDTO> getLikedQuizzes(int userId, int page, int size, String title, String categoryLabel, String levelLabel) {
         return getFilteredQuizzes(QuizzSpecifications.isLikedByUser(userId), page, size, title, categoryLabel, levelLabel);
     }
 
+    /**
+     * Retrieves a paginated list of quizzes favorited by the specified user.
+     * 
+     * @param userId the ID of the user who favorited the quizzes
+     * @param page the page number to retrieve
+     * @param size the size of the page
+     * @param title the title filter (optional)
+     * @param categoryLabel the category label filter (optional)
+     * @param levelLabel the level label filter (optional)
+     * @return a page of `QuizzDTO` objects
+     */
     public Page<QuizzDTO> getFavouriteQuizzes(int userId, int page, int size, String title, String categoryLabel, String levelLabel) {
         return getFilteredQuizzes(QuizzSpecifications.isFavouritedByUser(userId), page, size, title, categoryLabel, levelLabel);
     }
     
+    /**
+     * A private helper method to retrieve quizzes based on common filters (title, category, level)
+     * and additional specifications (such as liked or favorited quizzes).
+     * 
+     * @param additionalSpec additional specification to apply (e.g., liked or favorited by the user)
+     * @param page the page number to retrieve
+     * @param size the size of the page
+     * @param title the title filter (optional)
+     * @param categoryLabel the category label filter (optional)
+     * @param levelLabel the level label filter (optional)
+     * @return a page of `QuizzDTO` objects
+     */
     private Page<QuizzDTO> getFilteredQuizzes(Specification<Quizz> additionalSpec, int page, int size, String title, String categoryLabel, String levelLabel) {
         Pageable pageable = PaginationUtils.createPageableSortByDesc(page, size, "createdAt");
         Specification<Quizz> spec = applyCommonSpecifications(title, categoryLabel, levelLabel);
@@ -140,7 +203,15 @@ public class QuizzService {
         return quizzes.map(QuizzMapper::toDTO);
     }
     
-    
+    /**
+     * Applies common specifications for filtering quizzes based on title, category label, and level label.
+     * Also filters quizzes to only include those marked as visible.
+     * 
+     * @param title the title filter (optional)
+     * @param categoryLabel the category label filter (optional)
+     * @param levelLabel the level label filter (optional)
+     * @return a `Specification<Quizz>` object that can be used in repository queries
+     */
     private Specification<Quizz> applyCommonSpecifications(String title, String categoryLabel, String levelLabel) {
         Specification<Quizz> spec = Specification.where(null);
         

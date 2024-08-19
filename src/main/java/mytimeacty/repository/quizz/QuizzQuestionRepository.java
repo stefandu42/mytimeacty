@@ -6,6 +6,4 @@ import org.springframework.stereotype.Repository;
 import mytimeacty.model.quizzes.QuizzQuestion;
 
 @Repository
-public interface QuizzQuestionRepository extends JpaRepository<QuizzQuestion, Integer> {
-	
-}
+public interface QuizzQuestionRepository extends JpaRepository<QuizzQuestion, Integer> {}

@@ -14,8 +14,13 @@ public class FilterConfig {
 	    return new JwtAuthenticationFilter();
 	}
     
+    /**
+     * Registers the JwtAuthenticationFilter with the Spring Boot application.
+     * 
+     * @return a FilterRegistrationBean containing the registered JwtAuthenticationFilter.
+     */
     @Bean
-	public FilterRegistrationBean<JwtAuthenticationFilter> filterRegistrationBean() { 
+	FilterRegistrationBean<JwtAuthenticationFilter> filterRegistrationBean() { 
 	    
 	  FilterRegistrationBean<JwtAuthenticationFilter> registrationBean = new FilterRegistrationBean(); 
 	    

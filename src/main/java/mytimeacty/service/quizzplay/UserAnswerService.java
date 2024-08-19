@@ -20,6 +20,13 @@ public class UserAnswerService {
     @Autowired
     private QuizzPlayRepository quizzPlayRepository;
 
+    /**
+     * Retrieves a list of `UserAnswerDTO` objects associated with a specific quizz play.
+     *
+     * @param quizzPlayId the ID of the quizz play for which answers are to be retrieved
+     * @return a list of `UserAnswerDTO` objects
+     * @throws NotFoundException if the quizz play is not found
+     */
     public List<UserAnswerDTO> getAnswersByQuizzPlay(Integer quizzPlayId) {
         if (!quizzPlayRepository.existsById(quizzPlayId)) {
             throw new NotFoundException("Quizz play not found");

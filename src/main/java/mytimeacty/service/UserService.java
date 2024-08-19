@@ -118,25 +118,7 @@ public class UserService {
         User currentUser = this.getUserByIdData(SecurityUtils.getCurrentUser().getIdUser());
         String userCurrentRole = user.getUserRole();
         
-        if(user.getIdUser().equals(currentUser.getIdUser()))
-        	throw new ForbiddenException("You cannot change your own role");
-        
-        if (currentUser.getUserRole().equals("user")) {
-            throw new ForbiddenException("Users are not allowed to ban users");
-        }
-        
-        if(userCurrentRole.equals("banned"))
-        	throw new ForbiddenException("User is already banned");
-
-        // cannot change the role of admins or chiefs if I am admin
-        if (currentUser.getUserRole().equals("admin") && (userCurrentRole.equals("admin") || userCurrentRole.equals("chief"))) {
-            throw new ForbiddenException("Admins can only ban users");
-        }
-        
-        // cannot change role of another chief if I am chief
-        if (currentUser.getUserRole().equals("chief") && userCurrentRole.equals("chief")) {
-            throw new ForbiddenException("Chiefs can only ban users and admins");
-        }
+        validateRoleChange(currentUser, user, "ban");
         
         user.setUserPreviousRole(userCurrentRole);
         user.setUserRole("banned");
@@ -148,26 +130,44 @@ public class UserService {
         User currentUser = this.getUserByIdData(SecurityUtils.getCurrentUser().getIdUser());
         
         String userPreviousRole = user.getUserPreviousRole();
-        String userCurrentRole = user.getUserRole();
         
-        if(user.getIdUser().equals(currentUser.getIdUser()))
-        	throw new ForbiddenException("You cannot change your own role");
-        
-        if (currentUser.getUserRole().equals("user")) {
-            throw new ForbiddenException("Users are not allowed to unban users");
-        }
-        
-        if(!userCurrentRole.equals("banned"))
-        	throw new ForbiddenException("User is not banned");
-        
-        // admin can only unban previous user
-        if (currentUser.getUserRole().equals("admin") && !userPreviousRole.equals("user")) {
-            throw new ForbiddenException("Admins can only ban users");
-        }
+        validateRoleChange(currentUser, user, "unban");
         
         user.setUserPreviousRole("banned");
         user.setUserRole(userPreviousRole);
         userRepository.save(user);
+	}
+	
+	private void validateRoleChange(User currentUser, User targetUser, String action) {
+	    if (targetUser.getIdUser().equals(currentUser.getIdUser())) {
+	        throw new ForbiddenException("You cannot change your own role");
+	    }
+
+	    if (currentUser.getUserRole().equals("user")) {
+	        throw new ForbiddenException("Users are not allowed to " + action + " users");
+	    }
+
+	    // Role-specific checks
+	    if (action.equals("ban")) {
+	    	if(currentUser.getUserRole().equals("banned"))
+	        	throw new ForbiddenException("User is already banned");
+	    	
+	        if (currentUser.getUserRole().equals("admin") && 
+	            (targetUser.getUserRole().equals("admin") || targetUser.getUserRole().equals("chief"))) {
+	            throw new ForbiddenException("Admins can only ban users");
+	        }
+	        
+	        if (currentUser.getUserRole().equals("chief") && targetUser.getUserRole().equals("chief")) {
+	            throw new ForbiddenException("Chiefs can only ban users and admins");
+	        }
+	    } else if (action.equals("unban")) {
+	    	if(!currentUser.getUserRole().equals("banned"))
+	        	throw new ForbiddenException("User is not banned");
+	    	
+	        if (currentUser.getUserRole().equals("admin") && !targetUser.getUserPreviousRole().equals("user")) {
+	            throw new ForbiddenException("Admins can only unban users");
+	        }
+	    }
 	}
 	
 	public void promoteUserToAdmin(int userId) {

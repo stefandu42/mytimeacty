@@ -7,5 +7,4 @@ import mytimeacty.model.quizzes.QuizzFavourite;
 import mytimeacty.model.quizzes.ids.QuizzFavouriteId;
 
 @Repository
-public interface QuizzFavouriteRepository extends JpaRepository<QuizzFavourite, QuizzFavouriteId> {
-}
+public interface QuizzFavouriteRepository extends JpaRepository<QuizzFavourite, QuizzFavouriteId> {}

@@ -25,6 +25,17 @@ public class QuizzLikeService {
     @Autowired
     private QuizzLikeRepository quizzLikeRepository;
 
+    /**
+     * Adds a "like" to a quizz by the specified user.
+     * 
+     * This method verifies that both the quizz and user exist. If the quizz is not already liked by the user,
+     * it creates a new `QuizzLike` entity and saves it to the repository.
+     * 
+     * @param userId the ID of the user who wants to like the quizz
+     * @param quizzId the ID of the quizz to be liked
+     * @throws NotFoundException if the quizz is not found
+     * @throws UserNotFoundException if the user is not found
+     */
     public void likeQuizz(Integer userId, Integer quizzId) {
     	Quizz quizz = quizzRepository.findById(quizzId)
                 .orElseThrow(() -> new NotFoundException("Quizz not found"));
@@ -39,6 +50,15 @@ public class QuizzLikeService {
         }
     }
 
+    /**
+     * Removes a "like" from a quizz by the specified user.
+     * 
+     * This method deletes the `QuizzLike` entity identified by the user ID and quizz ID,
+     * effectively removing the like from the quizz.
+     * 
+     * @param userId the ID of the user who wants to unlike the quizz
+     * @param quizzId the ID of the quizz to be unliked
+     */
     public void unlikeQuizz(Integer userId, Integer quizzId) {
         QuizzLikeId quizzLikeId = new QuizzLikeId(quizzId, userId);
         quizzLikeRepository.deleteById(quizzLikeId);
