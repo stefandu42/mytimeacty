@@ -36,12 +36,29 @@ public class QuizzController {
 	@Autowired
     private QuizzService quizzService;
 	
+	/**
+     * Creates a new quizz.
+     *
+     * @param quizzCreationDTO the data transfer object containing quizz creation details.
+     * @return a ResponseEntity containing the created QuizzDTO and HTTP status 201 Created.
+     */
 	@PostMapping
     public ResponseEntity<QuizzDTO> createQuizz(@Valid @RequestBody QuizzCreateDTO quizzCreationDTO) {
         QuizzDTO createdQuizz = quizzService.createQuizz(quizzCreationDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdQuizz);
     }
 	
+	/**
+     * Retrieves a paginated list of quizzes with optional filtering by title, nickname, category, or level.
+     *
+     * @param page the page number to retrieve (zero-based).
+     * @param size the number of items per page.
+     * @param title an optional filter by quizz title.
+     * @param nickname an optional filter by user nickname.
+     * @param categoryLabel an optional filter by quizz category.
+     * @param levelLabel an optional filter by quizz difficulty level.
+     * @return a ResponseEntity containing a Page of QuizzDTO objects.
+     */
 	@GetMapping
     public ResponseEntity<Page<QuizzDTO>> getAllQuizzes(
         @RequestParam(defaultValue = "0") int page, 
@@ -56,6 +73,17 @@ public class QuizzController {
         return ResponseEntity.status(HttpStatus.OK).body(quizzes);
     }
 	
+	/**
+     * Retrieves a paginated list of quizzes liked by a specific user.
+     *
+     * @param idUser the ID of the user whose liked quizzes are to be retrieved.
+     * @param page the page number to retrieve (zero-based).
+     * @param size the number of items per page.
+     * @param title an optional filter by quizz title.
+     * @param categoryLabel an optional filter by quizz category.
+     * @param levelLabel an optional filter by quiz difficulty level.
+     * @return a ResponseEntity containing a Page of QuizzDTO objects.
+     */
 	@GetMapping("/likes/users/{idUser}")
 	public ResponseEntity<Page<QuizzDTO>> getLikedQuizzes(
 		@PathVariable int idUser,
@@ -70,6 +98,17 @@ public class QuizzController {
 	    return ResponseEntity.status(HttpStatus.OK).body(quizzes);
 	}
 	
+	/**
+     * Retrieves a paginated list of quizzes marked as favorites by a specific user.
+     *
+     * @param idUser the ID of the user whose favorite quizzes are to be retrieved.
+     * @param page the page number to retrieve (zero-based).
+     * @param size the number of items per page.
+     * @param title an optional filter by quizz title.
+     * @param categoryLabel an optional filter by quizz category.
+     * @param levelLabel an optional filter by quiz difficulty level.
+     * @return a ResponseEntity containing a Page of QuizzDTO objects.
+     */
 	@GetMapping("/favourites/users/{idUser}")
 	public ResponseEntity<Page<QuizzDTO>> getFavouriteQuizzes(
 		@PathVariable int idUser,
@@ -84,37 +123,60 @@ public class QuizzController {
 	    return ResponseEntity.status(HttpStatus.OK).body(quizzes);
 	}
 	
+	/**
+     * Allows the current user to mark a quizz as a favorite.
+     *
+     * @param idQuizz the ID of the quizz to be favorited.
+     * @return a ResponseEntity with HTTP status 201 Created.
+     */
 	@PostMapping("/favourite/{idQuizz}")
 	public ResponseEntity<String> favouriteQuizz(@PathVariable Integer idQuizz) {
 	    quizzFavouriteService.favouriteQuizz(SecurityUtils.getCurrentUser().getIdUser(), idQuizz);
 	    return ResponseEntity.status(HttpStatus.CREATED).build();
 	}
 
+	/**
+     * Allows the current user to remove a quizz from their favorites.
+     *
+     * @param idQuizz the ID of the quizz to be removed from favorites.
+     * @return a ResponseEntity with HTTP status 204 No Content.
+     */
     @DeleteMapping("/favourite/{idQuizz}")
     public ResponseEntity<Void> unfavouriteQuizz(@PathVariable Integer idQuizz) {
         quizzFavouriteService.unfavouriteQuizz(SecurityUtils.getCurrentUser().getIdUser(), idQuizz);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build(); 
     }
     
-    
+    /**
+     * Allows the current user to like a quizz.
+     *
+     * @param idQuizz the ID of the quizz to be liked.
+     * @return a ResponseEntity with HTTP status 201 Created.
+     */
     @PostMapping("/like/{idQuizz}")
     public ResponseEntity<String> likeQuizz(@PathVariable Integer idQuizz) {
     	quizzLikeService.likeQuizz(SecurityUtils.getCurrentUser().getIdUser(), idQuizz);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
+    /**
+     * Allows the current user to unlike a quizz.
+     *
+     * @param idQuizz the ID of the quizz to be unliked.
+     * @return a ResponseEntity with HTTP status 204 No Content.
+     */
     @DeleteMapping("/like/{idQuizz}")
     public ResponseEntity<Void> unlikeQuizz(@PathVariable Integer idQuizz) {
         quizzLikeService.unlikeQuizz(SecurityUtils.getCurrentUser().getIdUser(), idQuizz);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build(); 
     }
-    
-    @RolesAllowed({"admin", "chief"})
-    @GetMapping("/view")
-    public ResponseEntity<String> viewDashboard() {
-        return ResponseEntity.ok("Welcome to the Dashboard accessible by Admins and Chiefs");
-    }
 	
+    /**
+     * Allows only users with the roles "admin" or "chief" to hide a specific quizz.
+     *
+     * @param quizId the ID of the quizz to be hidden.
+     * @return a ResponseEntity with a confirmation message and HTTP status 200 OK.
+     */
     @RolesAllowed({"admin", "chief"})
     @PutMapping("/{quizId}/hide")
     public ResponseEntity<String> hideQuiz(@PathVariable int quizId) {

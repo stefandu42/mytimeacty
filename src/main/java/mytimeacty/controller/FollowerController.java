@@ -24,7 +24,17 @@ public class FollowerController {
     @Autowired
     private FollowerService followerService;
     
-    // Route to get a user's followers
+    /**
+     * Retrieves a paginated list of followers for a specified user.
+     * 
+     * This endpoint returns a paginated list of followers for the user identified by the provided user ID.
+     * The pagination can be customized using the `page` and `size` query parameters.
+     * 
+     * @param userId the ID of the user whose followers are to be retrieved.
+     * @param page the page number to retrieve (zero-based).
+     * @param size the number of items per page.
+     * @return a ResponseEntity containing a Page of FollowerDTO objects with the followers of the user.
+     */
     @GetMapping("/users/{userId}/followers")
     public ResponseEntity<Page<FollowerDTO>> getFollowers(
             @PathVariable Integer userId,
@@ -35,7 +45,17 @@ public class FollowerController {
         return ResponseEntity.status(HttpStatus.OK).body(followers);
     }
 
-    // Route to get a user's subscriptions
+    /**
+     * Retrieves a paginated list of followings for a specified user.
+     * 
+     * This endpoint returns a paginated list of users that the user identified by the provided user ID is following.
+     * The pagination can be customized using the `page` and `size` query parameters.
+     * 
+     * @param userId the ID of the user whose followings are to be retrieved.
+     * @param page the page number to retrieve (zero-based).
+     * @param size the number of items per page.
+     * @return a ResponseEntity containing a Page of FollowingDTO objects with the users followed by the user.
+     */
     @GetMapping("/users/{userId}/followings")
     public ResponseEntity<Page<FollowingDTO>> getFollowings(
             @PathVariable Integer userId,
@@ -46,17 +66,29 @@ public class FollowerController {
         return ResponseEntity.status(HttpStatus.OK).body(followings);
     }
 
+    /**
+     * Allows the current user to follow another user.
+     * 
+     * This endpoint enables the currently authenticated user to follow a user identified by the provided user ID.
+     * If the user attempts to follow themselves, a bad request response is returned.
+     * 
+     * @param idUserFollowed the ID of the user to be followed.
+     * @return a ResponseEntity with a status of 201 Created if the follow action is successful
+     */
     @PostMapping("/follow/{idUserFollowed}")
     public ResponseEntity<String> followUser(@PathVariable Integer idUserFollowed) {
-        if (SecurityUtils.getCurrentUser().getIdUser().equals(idUserFollowed)) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("You cannot follow yourself");
-        }
-        
     	followerService.followUser(SecurityUtils.getCurrentUser().getIdUser(), idUserFollowed);
         return ResponseEntity.status(HttpStatus.CREATED).build(); 
     }
     
+    /**
+     * Allows the current user to unfollow another user.
+     * 
+     * This endpoint enables the currently authenticated user to unfollow a user identified by the provided user ID.
+     * 
+     * @param idUserFollowed the ID of the user to be unfollowed.
+     * @return a ResponseEntity with a status of 204 No Content if the unfollow action is successful.
+     */
     @DeleteMapping("/unfollow/{idUserFollowed}")
     public ResponseEntity<String> unfollowUser(@PathVariable Integer idUserFollowed) {
         followerService.unfollowUser(SecurityUtils.getCurrentUser().getIdUser(), idUserFollowed);

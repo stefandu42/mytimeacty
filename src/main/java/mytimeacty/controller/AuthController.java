@@ -22,6 +22,16 @@ public class AuthController {
 	@Autowired
 	private AuthenticationService authenticationService;
 	
+	/**
+     * Authenticates a user and returns an authentication token.
+     * 
+     * This endpoint validates the user's credentials and provides an authentication token upon successful login.
+     * If the provided credentials are incorrect or the user does not exist, an unauthorized error response is returned.
+     * 
+     * @param loginDTO the login details of the user, including nickname/email and password.
+     * @return a ResponseEntity containing the authentication token if login is successful.
+     *         Returns a 401 Unauthorized status with an error message if the login fails.
+     */
 	@PostMapping("/login")
 	public ResponseEntity<String> getToken(@Valid @RequestBody LoginDTO loginDTO) {
 		try {
@@ -32,7 +42,14 @@ public class AuthController {
         }
 	}
 
-	
+	/**
+     * Registers a new user and returns an authentication token.
+     * 
+     * This endpoint creates a new user based on the provided registration details and issues an authentication token for the newly created user.
+     * 
+     * @param userCreateDTO the details of the user to be registered, including email, nickname, and password.
+     * @return a ResponseEntity containing the authentication token for the newly registered user.
+     */
 	@PostMapping("/register")
     public ResponseEntity<String> createUserAndGetToken(@Valid @RequestBody UserCreateDTO userCreateDTO) {
 		String token = authenticationService.registerUser(userCreateDTO);

@@ -5,6 +5,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import mytimeacty.exception.ForbiddenException;
 import mytimeacty.exception.UserNotFoundException;
 import mytimeacty.mapper.FollowerMapper;
 import mytimeacty.model.followers.Follower;
@@ -15,6 +16,7 @@ import mytimeacty.model.users.User;
 import mytimeacty.repository.FollowerRepository;
 import mytimeacty.repository.UserRepository;
 import mytimeacty.utils.PaginationUtils;
+import mytimeacty.utils.SecurityUtils;
 
 @Service
 public class FollowerService {
@@ -32,8 +34,11 @@ public class FollowerService {
      * @param idUserFollowed the ID of the user being followed
      * @return a FollowerDTO representing the newly created follower relationship
      * @throws UserNotFoundException if either the follower or the followed user is not found
+     * @throws ForbiddenException if the follower is the followed user
      */
     public FollowerDTO followUser(Integer idFollower, Integer idUserFollowed) {
+    	if (SecurityUtils.getCurrentUser().getIdUser().equals(idUserFollowed))
+            throw new ForbiddenException("You cannot follow yourself");
         User follower = userRepository.findById(idFollower)
                 .orElseThrow(() -> new UserNotFoundException("User follower not found"));
         User userFollowed = userRepository.findById(idUserFollowed)
