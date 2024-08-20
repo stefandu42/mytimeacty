@@ -1,0 +1,51 @@
+<!-- logback-spring.xml should be placed in src/main/resources/ -->
+
+<configuration>
+	
+	 <!-- Console Appender (for logging to the console) -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+    
+    
+    <!-- File Appender (for logging to a file) -->
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        
+        <!-- Specify the path and name of the log file -->
+        <file>logs/mytimeacty.log</file>
+        
+        <!-- Define a rolling policy to manage log file rotation -->
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            	
+            <!-- Define the filename pattern for rolled files -->
+            <fileNamePattern>logs/archived/mytimeacty.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            
+            <!-- Set the maximum file size before rolling -->
+            <maxFileSize>10MB</maxFileSize>
+            
+            <!-- Keep a maximum of 30 rolled log files -->
+            <maxHistory>50</maxHistory>
+            
+            <!-- Limit the total size of all log files to 1GB -->
+            <totalSizeCap>1GB</totalSizeCap>
+            
+        </rollingPolicy>
+        
+        <!-- Define the log message format -->
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+        
+    </appender>
+    
+    <!-- Root Logger: Send logs to both Console and File -->
+    <root level="INFO">
+		<!-- Attach the console appender to the root logger -->
+        <appender-ref ref="CONSOLE" />
+        <!-- Attach the file appender to the root logger -->
+        <appender-ref ref="FILE" />
+    </root>
+    
+</configuration>

@@ -52,12 +52,12 @@ public class QuizzService {
     private QuizzCategoryRepository quizzCategoryRepository;
     
     /**
-     * Marks a quiz as hidden by setting the `isVisible` attribute to false.
+     * Marks a quizz as hidden by setting the `isVisible` attribute to false.
      * 
-     * @param quizId the ID of the quizz to be hidden
+     * @param quizzId the ID of the quizz to be hidden
      * @throws NotFoundException if the quizz is not found
      */
-    public void markQuizAsHidden(int quizId) {
+    public void markQuizzAsHidden(int quizId) {
         Quizz quiz = quizzRepository.findById(quizId)
             .orElseThrow(() -> new NotFoundException("Quiz not found"));
 

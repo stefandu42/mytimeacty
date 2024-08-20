@@ -174,13 +174,13 @@ public class QuizzController {
     /**
      * Allows only users with the roles "admin" or "chief" to hide a specific quizz.
      *
-     * @param quizId the ID of the quizz to be hidden.
+     * @param quizzId the ID of the quizz to be hidden.
      * @return a ResponseEntity with a confirmation message and HTTP status 200 OK.
      */
     @RolesAllowed({"admin", "chief"})
     @PutMapping("/{quizId}/hide")
-    public ResponseEntity<String> hideQuiz(@PathVariable int quizId) {
-        quizzService.markQuizAsHidden(quizId);
+    public ResponseEntity<String> hideQuiz(@PathVariable int quizzId) {
+        quizzService.markQuizzAsHidden(quizzId);
         return ResponseEntity.status(HttpStatus.OK).body("Quiz hidden successfully");
     }
 	
