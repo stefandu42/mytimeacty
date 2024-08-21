@@ -74,6 +74,7 @@ public class UserService {
                         .password(bcryptService.encodePassword(userCreateDTO.getPassword()))
                         .userRole("user")
                         .userPreviousRole("user")
+                        .isActivated(false)
                         .build();
         
         User savedUser = userRepository.save(user);

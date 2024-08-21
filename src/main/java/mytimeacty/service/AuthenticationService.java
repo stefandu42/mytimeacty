@@ -1,5 +1,7 @@
 package mytimeacty.service;
 
+import java.util.concurrent.CompletableFuture;
+
 import javax.naming.AuthenticationException;
 
 import org.slf4j.Logger;
@@ -18,6 +20,7 @@ import mytimeacty.model.users.dto.creation.UserCreateDTO;
 import mytimeacty.model.users.enums.UserRole;
 import mytimeacty.repository.UserRepository;
 import mytimeacty.service.JWT.JWTService;
+import mytimeacty.service.mail.MailService;
 
 @Service
 public class AuthenticationService {
@@ -33,6 +36,9 @@ public class AuthenticationService {
 	
 	@Autowired
     private JWTService jwtService;
+	
+	@Autowired
+	private MailService mailService;
 	
 	private static final Logger logger = LoggerFactory.getLogger(AuthenticationService.class);
 	
@@ -106,6 +112,11 @@ public class AuthenticationService {
 		
 		logger.info("Method authenticateUser: Token for user with nickname {} created sucessfully.",
 				createDTO.getNickname());
+
+	    // Send email to verify
+	    CompletableFuture.runAsync(() -> {
+	    	mailService.sendVerificationEmail(userSaved.getEmail(), token);
+	    });
 		
 		return token;
 	}

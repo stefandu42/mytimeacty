@@ -64,7 +64,7 @@ public class QuizzPlayService {
      * @return a page of `QuizzPlayDTO` objects
      * @throws NotFoundException if the quizz is not found
      */
-    public Page<QuizzPlayDTO> getQuizzPlaysByQuizz(Integer quizzId, int page, int size) {
+    public Page<QuizzPlayDTO> getQuizzPlaysByQuizz(int quizzId, int page, int size) {
     	String currentUserNickname = SecurityUtils.getCurrentUser().getNickname();
     	logger.info("Entering method getQuizzPlaysByQuizz: User '{}'", currentUserNickname);
     	
@@ -88,7 +88,7 @@ public class QuizzPlayService {
      * @throws IllegalArgumentException if not all questions have been answered or if an answer does not belong to the quizz
      */
     @Transactional
-    public void handleUserAnswers(Integer quizzId, List<UserAnswerCreateDTO> userAnswerCreateDTOs) {
+    public void handleUserAnswers(int quizzId, List<UserAnswerCreateDTO> userAnswerCreateDTOs) {
     	String currentUserNickname = SecurityUtils.getCurrentUser().getNickname();
     	logger.info("Entering method handleUserAnswers: User '{}'", currentUserNickname);
     	

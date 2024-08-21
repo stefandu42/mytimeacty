@@ -41,7 +41,7 @@ public class FollowerController {
      */
     @GetMapping("/users/{userId}/followers")
     public ResponseEntity<Page<FollowerDTO>> getFollowers(
-            @PathVariable Integer userId,
+            @PathVariable int userId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "15") int size) {
 
@@ -64,7 +64,7 @@ public class FollowerController {
      */
     @GetMapping("/users/{userId}/followings")
     public ResponseEntity<Page<FollowingDTO>> getFollowings(
-            @PathVariable Integer userId,
+            @PathVariable int userId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "15") int size) {
 
@@ -84,7 +84,7 @@ public class FollowerController {
      * @return a ResponseEntity with a status of 201 Created if the follow action is successful
      */
     @PostMapping("/follow/{idUserFollowed}")
-    public ResponseEntity<String> followUser(@PathVariable Integer idUserFollowed) {
+    public ResponseEntity<String> followUser(@PathVariable int idUserFollowed) {
     	followerService.followUser(SecurityUtils.getCurrentUser().getIdUser(), idUserFollowed);
     	logger.info("User with the nickname '{}' has successfully follow the user with id '{}'", 
         		SecurityUtils.getCurrentUser().getNickname(), idUserFollowed);
@@ -100,7 +100,7 @@ public class FollowerController {
      * @return a ResponseEntity with a status of 204 No Content if the unfollow action is successful.
      */
     @DeleteMapping("/unfollow/{idUserFollowed}")
-    public ResponseEntity<String> unfollowUser(@PathVariable Integer idUserFollowed) {
+    public ResponseEntity<String> unfollowUser(@PathVariable int idUserFollowed) {
         followerService.unfollowUser(SecurityUtils.getCurrentUser().getIdUser(), idUserFollowed);
         logger.info("User with the nickname '{}' has successfully unfollow the user with id '{}'", 
         		SecurityUtils.getCurrentUser().getNickname(), idUserFollowed);

@@ -45,7 +45,7 @@ public class QuizzPlayController {
      */
     @PostMapping("/quizzes/{quizzId}")
     public ResponseEntity<String> submitUserAnswers(
-            @PathVariable Integer quizzId, 
+            @PathVariable int quizzId, 
             @RequestBody List<UserAnswerCreateDTO> userAnswerCreateDTOs) {
 
         quizzPlayService.handleUserAnswers(quizzId, userAnswerCreateDTOs);
@@ -64,7 +64,7 @@ public class QuizzPlayController {
      */
     @GetMapping("/quizzes/{quizzId}/plays")
     public ResponseEntity<Page<QuizzPlayDTO>> getQuizzPlaysByQuizz(
-            @PathVariable Integer quizzId,
+            @PathVariable int quizzId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "15") int size) {
 
@@ -83,7 +83,7 @@ public class QuizzPlayController {
      */
     @GetMapping("/{quizzPlayId}/answers")
     public ResponseEntity<List<UserAnswerDTO>> getUserAnswersByQuizzPlay(
-            @PathVariable Integer quizzPlayId) {
+            @PathVariable int quizzPlayId) {
 
         List<UserAnswerDTO> userAnswerDTOs = userAnswerService.getAnswersByQuizzPlay(quizzPlayId);
         logger.info("User with the nickname '{}' has successfully retrieved the user answers for the quizz play with id '{}'", 

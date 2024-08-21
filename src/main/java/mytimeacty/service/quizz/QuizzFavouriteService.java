@@ -42,7 +42,7 @@ public class QuizzFavouriteService {
      * @throws NotFoundException if the quizz is not found
      * @throws UserNotFoundException if the user is not found
      */
-    public void favouriteQuizz(Integer userId, Integer quizzId) {
+    public void favouriteQuizz(int userId, int quizzId) {
     	String currentUserNickname= SecurityUtils.getCurrentUser().getNickname();
     	logger.info("Entering method favouriteQuizz: User '{}'", currentUserNickname);
     	Quizz quizz = quizzRepository.findById(quizzId)
@@ -74,7 +74,7 @@ public class QuizzFavouriteService {
      * @param userId the ID of the user who wants to unfavourite the quizz
      * @param quizzId the ID of the quizz to be unfavourited
      */
-    public void unfavouriteQuizz(Integer userId, Integer quizzId) {
+    public void unfavouriteQuizz(int userId, int quizzId) {
     	String currentUserNickname = SecurityUtils.getCurrentUser().getNickname();
     	logger.info("Entering method unfavouriteQuizz: User '{}'", currentUserNickname);
     	

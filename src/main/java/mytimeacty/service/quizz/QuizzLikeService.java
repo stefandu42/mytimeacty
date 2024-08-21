@@ -41,7 +41,7 @@ public class QuizzLikeService {
      * @throws NotFoundException if the quizz is not found
      * @throws UserNotFoundException if the user is not found
      */
-    public void likeQuizz(Integer userId, Integer quizzId) {
+    public void likeQuizz(int userId, int quizzId) {
     	String currentUserNickname = SecurityUtils.getCurrentUser().getNickname();
     	logger.info("Entering method likeQuizz: User '{}'", currentUserNickname);
     	
@@ -75,7 +75,7 @@ public class QuizzLikeService {
      * @param userId the ID of the user who wants to unlike the quizz
      * @param quizzId the ID of the quizz to be unliked
      */
-    public void unlikeQuizz(Integer userId, Integer quizzId) {
+    public void unlikeQuizz(int userId, int quizzId) {
     	String currentUserNickname = SecurityUtils.getCurrentUser().getNickname();
     	logger.info("Entering method unlikeQuizz: User '{}'", currentUserNickname);
     	

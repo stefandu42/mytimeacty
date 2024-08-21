@@ -40,7 +40,7 @@ public class FollowerService {
      * @throws UserNotFoundException if either the follower or the followed user is not found
      * @throws ForbiddenException if the follower is the followed user
      */
-    public FollowerDTO followUser(Integer idFollower, Integer idUserFollowed) {
+    public FollowerDTO followUser(int idFollower, int idUserFollowed) {
     	String currentUserNickname = SecurityUtils.getCurrentUser().getNickname();
     	logger.info("Entering method followUser: User '{}'", currentUserNickname);
     	
@@ -85,7 +85,7 @@ public class FollowerService {
      * @param idUserFollowed the ID of the user being unfollowed
      * @throws UserNotFoundException if the follower or the followed user does not exist
      */
-    public void unfollowUser(Integer idFollower, Integer idUserFollowed) {
+    public void unfollowUser(int idFollower, int idUserFollowed) {
     	String currentUserNickname = SecurityUtils.getCurrentUser().getNickname();
     	logger.info("Entering method unfollowUser: User '{}'", currentUserNickname);
     	
@@ -105,7 +105,7 @@ public class FollowerService {
      * @return a page of FollowerDTO objects representing the followers of the user
      * @throws UserNotFoundException if the user with the specified ID is not found
      */
-    public Page<FollowerDTO> getFollowersByUserId(Integer userId, int page, int size) {
+    public Page<FollowerDTO> getFollowersByUserId(int userId, int page, int size) {
     	String currentUserNickname = SecurityUtils.getCurrentUser().getNickname();
     	logger.info("Entering method getFollowersByUserId: User '{}'", currentUserNickname);
     	
@@ -130,7 +130,7 @@ public class FollowerService {
      * @return a page of FollowingDTO objects representing the users being followed by the user
      * @throws UserNotFoundException if the user with the specified ID is not found
      */
-    public Page<FollowingDTO> getFollowingsByUserId(Integer userId, int page, int size) {
+    public Page<FollowingDTO> getFollowingsByUserId(int userId, int page, int size) {
     	String currentUserNickname = SecurityUtils.getCurrentUser().getNickname();
     	logger.info("Entering method getFollowingsByUserId: User '{}'", currentUserNickname);
     	

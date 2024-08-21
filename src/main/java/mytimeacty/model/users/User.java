@@ -42,6 +42,9 @@ public class User {
     @Column(name = "user_previous_role", nullable = false)
     private String userPreviousRole;
     
+    @Column(name = "is_activated", nullable = false)
+    private Boolean isActivated;
+    
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant  createdAt;
 

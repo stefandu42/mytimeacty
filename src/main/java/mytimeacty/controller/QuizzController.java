@@ -145,7 +145,7 @@ public class QuizzController {
      * @return a ResponseEntity with HTTP status 201 Created.
      */
 	@PostMapping("/favourite/{idQuizz}")
-	public ResponseEntity<String> favouriteQuizz(@PathVariable Integer idQuizz) {
+	public ResponseEntity<String> favouriteQuizz(@PathVariable int idQuizz) {
 	    quizzFavouriteService.favouriteQuizz(SecurityUtils.getCurrentUser().getIdUser(), idQuizz);
 	    logger.info("User with the nickname '{}' has successfully marked the quizz with id '{}' as favourite", 
         		SecurityUtils.getCurrentUser().getNickname(), idQuizz);
@@ -159,7 +159,7 @@ public class QuizzController {
      * @return a ResponseEntity with HTTP status 204 No Content.
      */
     @DeleteMapping("/favourite/{idQuizz}")
-    public ResponseEntity<Void> unfavouriteQuizz(@PathVariable Integer idQuizz) {
+    public ResponseEntity<Void> unfavouriteQuizz(@PathVariable int idQuizz) {
         quizzFavouriteService.unfavouriteQuizz(SecurityUtils.getCurrentUser().getIdUser(), idQuizz);
         logger.info("User with the nickname '{}' has successfully remove the quizz with id '{}' as favourite", 
         		SecurityUtils.getCurrentUser().getNickname(), idQuizz);
@@ -173,7 +173,7 @@ public class QuizzController {
      * @return a ResponseEntity with HTTP status 201 Created.
      */
     @PostMapping("/like/{idQuizz}")
-    public ResponseEntity<String> likeQuizz(@PathVariable Integer idQuizz) {
+    public ResponseEntity<String> likeQuizz(@PathVariable int idQuizz) {
     	quizzLikeService.likeQuizz(SecurityUtils.getCurrentUser().getIdUser(), idQuizz);
     	logger.info("User with the nickname '{}' has successfully marked the quizz with id '{}' as liked", 
         		SecurityUtils.getCurrentUser().getNickname(), idQuizz);
@@ -187,7 +187,7 @@ public class QuizzController {
      * @return a ResponseEntity with HTTP status 204 No Content.
      */
     @DeleteMapping("/like/{idQuizz}")
-    public ResponseEntity<Void> unlikeQuizz(@PathVariable Integer idQuizz) {
+    public ResponseEntity<Void> unlikeQuizz(@PathVariable int idQuizz) {
         quizzLikeService.unlikeQuizz(SecurityUtils.getCurrentUser().getIdUser(), idQuizz);
         logger.info("User with the nickname '{}' has successfully remove the quizz with id '{}' as liked", 
         		SecurityUtils.getCurrentUser().getNickname(), idQuizz);

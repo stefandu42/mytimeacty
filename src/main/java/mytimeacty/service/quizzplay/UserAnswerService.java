@@ -32,7 +32,7 @@ public class UserAnswerService {
      * @return a list of `UserAnswerDTO` objects
      * @throws NotFoundException if the quizz play is not found
      */
-    public List<UserAnswerDTO> getAnswersByQuizzPlay(Integer quizzPlayId) {
+    public List<UserAnswerDTO> getAnswersByQuizzPlay(int quizzPlayId) {
     	String currentUserNickname = SecurityUtils.getCurrentUser().getNickname();
     	logger.info("Entering method getQuizzPlaysByQuizz: User '{}'", currentUserNickname);
     	
