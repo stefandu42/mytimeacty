@@ -1,7 +1,10 @@
 package mytimeacty.security;
 
+import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import mytimeacty.annotation.RolesAllowed;
@@ -13,6 +16,8 @@ import mytimeacty.utils.SecurityUtils;
 @Component
 public class RoleAspect {
 
+	private static final Logger logger = LoggerFactory.getLogger(SecurityUtils.class);
+	
 	/**
 	 * Aspect method that checks if the current user has the required roles before executing a method.
 	 * 
@@ -24,10 +29,11 @@ public class RoleAspect {
 	 * @throws SecurityException if the user does not have the necessary role to execute the method.
 	 */
     @Before("@annotation(rolesAllowed)")
-    public void checkRolesAllowed(RolesAllowed rolesAllowed) {
+    public void checkRolesAllowed(JoinPoint joinPoint, RolesAllowed rolesAllowed) {
         UserDTO user = SecurityUtils.getCurrentUser();
 
         boolean hasRole = false;
+        String[] allowedRoles = rolesAllowed.value();
 
         for (String role : rolesAllowed.value()) {
             if (user.getUserRole().equals(UserRole.fromString(role).getRole())) {
@@ -37,6 +43,14 @@ public class RoleAspect {
         }
         
         if (!hasRole) {
+        	// Getting the method signature for logging
+        	String methodName = joinPoint.getSignature().getName();
+
+            logger.warn("User with nickname '{}' has insufficient roles to perform this action. (Actual role: '{}', Required roles: '{}', Method: '{}')", 
+                        user.getNickname(), 
+                        user.getUserRole(), 
+                        String.join(", ", allowedRoles),
+                        methodName);
             throw new SecurityException("Forbidden: Insufficient roles");
         }
     }

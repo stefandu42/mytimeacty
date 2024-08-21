@@ -1,5 +1,7 @@
 package mytimeacty.controller;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,6 +16,7 @@ import mytimeacty.annotation.RolesAllowed;
 import mytimeacty.model.users.dto.UserDetailsDTO;
 import mytimeacty.model.users.dto.UserProfileDTO;
 import mytimeacty.service.UserService;
+import mytimeacty.utils.SecurityUtils;
 
 
 @RestController
@@ -21,6 +24,8 @@ import mytimeacty.service.UserService;
 public class UserController {
 	
     private UserService userService;
+    
+    private static final Logger logger = LoggerFactory.getLogger(UserController.class);
     
 
 	public UserController(UserService userService) {
@@ -36,6 +41,8 @@ public class UserController {
 	@GetMapping("/{userId}/profile")
     public ResponseEntity<UserProfileDTO> getUserProfile(@PathVariable int userId) {
         UserProfileDTO userProfileDTO = userService.getUserProfile(userId);
+        logger.info("User with the nickname '{}' has successfully retrieved the profile of user with id '{}'", 
+        		SecurityUtils.getCurrentUser().getNickname(), userId);
         return ResponseEntity.status(HttpStatus.OK).body(userProfileDTO);
     }
     
@@ -54,6 +61,9 @@ public class UserController {
             @RequestParam(defaultValue = "15") int size) {
         
         Page<UserDetailsDTO> userDetailsDTOs = userService.getFilteredUsers(nickname, page, size);
+        logger.info("User with the nickname '{}' has successfully retrieved all users using params nickname '{}', "
+        		+ "page '{}' and size '{}'", 
+        		SecurityUtils.getCurrentUser().getNickname(), nickname, page, size);
         return ResponseEntity.status(HttpStatus.OK).body(userDetailsDTOs);
     }
 			
@@ -68,6 +78,8 @@ public class UserController {
     public ResponseEntity<String> banUser(@PathVariable int userId) {
 		userService.banUser(userId);
 
+		logger.info("User with the nickname '{}' (role: '{}') has successfully marked the user with id '{}' as banned", 
+        		SecurityUtils.getCurrentUser().getNickname(), SecurityUtils.getCurrentUser().getUserRole(), userId);
         return ResponseEntity.status(HttpStatus.OK).body("User banned successfully");
     }
 	
@@ -82,6 +94,9 @@ public class UserController {
     public ResponseEntity<String> unbanUser(@PathVariable int userId) {
 		userService.unbanUser(userId);
 
+		logger.info("User with the nickname '{}' (role: '{}') has successfully marked the user with id '{}' as un-banned and"
+				+ " restored his previous role", 
+        		SecurityUtils.getCurrentUser().getNickname(), SecurityUtils.getCurrentUser().getUserRole(), userId);
         return ResponseEntity.status(HttpStatus.OK).body("User unbanned successfully");
     }
 	
@@ -95,6 +110,8 @@ public class UserController {
     @PutMapping("/{userId}/promote-to-admin")
     public ResponseEntity<String> promoteUserToAdmin(@PathVariable int userId) {
 		userService.promoteUserToAdmin(userId);
+		logger.info("Chief with the nickname '{}' has successfully promoted the user with id '{}' as admin", 
+        		SecurityUtils.getCurrentUser().getNickname(), userId);
         return ResponseEntity.status(HttpStatus.OK).body("User promoted to admin successfully");
     }
 
@@ -108,6 +125,8 @@ public class UserController {
     @PutMapping("/{userId}/promote-to-chief")
     public ResponseEntity<String> promoteAdminToChief(@PathVariable int userId) {
 		userService.promoteAdminToChief(userId);
+		logger.info("Chief with the nickname '{}' has successfully promoted the admin with id '{}' as chief", 
+        		SecurityUtils.getCurrentUser().getNickname(), userId);
         return ResponseEntity.status(HttpStatus.OK).body("Admin promoted to chief successfully");
     }
 
@@ -121,6 +140,8 @@ public class UserController {
     @PutMapping("/{userId}/demote-to-user")
     public ResponseEntity<String> demoteAdminToUser(@PathVariable int userId) {
 		userService.demoteAdminToUser(userId);
+		logger.info("Chief with the nickname '{}' has successfully demoted the admin with id '{}' as user", 
+        		SecurityUtils.getCurrentUser().getNickname(), userId);
         return ResponseEntity.status(HttpStatus.OK).body("Admin demoted to user successfully");
     }
     

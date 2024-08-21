@@ -10,10 +10,13 @@ import jakarta.servlet.http.HttpServletResponse;
 import mytimeacty.model.users.dto.UserDTO;
 import mytimeacty.model.users.enums.UserRole;
 import mytimeacty.service.UserService;
+import mytimeacty.utils.SecurityUtils;
 
 import java.io.IOException;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -32,6 +35,8 @@ public class JwtAuthenticationFilter implements Filter {
 	
 	@Autowired
     private JwtDecoder jwtDecoder;
+	
+	private static final Logger logger = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
 	
 	/**
 	 * Custom filter for handling authentication and authorization.
@@ -62,6 +67,7 @@ public class JwtAuthenticationFilter implements Filter {
         
         if(token == null || !this.validateToken(token)){
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid Token");
+            logger.warn("The '{}' token is invalid", token);
             return;
         }
         
@@ -69,12 +75,15 @@ public class JwtAuthenticationFilter implements Filter {
         
         if(userFromToken.getUserRole().equals(UserRole.BANNED.getRole())){
             response.sendError(HttpServletResponse.SC_FORBIDDEN, "You are banned");
+            logger.warn("User banned with nickname '{}' tried to make a request", userFromToken.getNickname());
             return;
         }
     	
         Authentication authentication = getAuthentication(userFromToken);
         if (authentication != null) 
         	SecurityContextHolder.getContext().setAuthentication(authentication);
+        
+    	logger.info("Entering method favouriteQuizz: User '{}'", userFromToken.getNickname());
        
         filterChain.doFilter(servletRequest, servletResponse);
         

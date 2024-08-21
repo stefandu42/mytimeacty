@@ -2,6 +2,8 @@ package mytimeacty.controller;
 
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,6 +20,7 @@ import mytimeacty.model.quizzplay.dto.UserAnswerDTO;
 import mytimeacty.model.quizzplay.dto.creation.UserAnswerCreateDTO;
 import mytimeacty.service.quizzplay.QuizzPlayService;
 import mytimeacty.service.quizzplay.UserAnswerService;
+import mytimeacty.utils.SecurityUtils;
 
 import org.springframework.data.domain.Page;
 
@@ -30,6 +33,8 @@ public class QuizzPlayController {
 	
 	@Autowired
     private UserAnswerService userAnswerService;
+	
+	private static final Logger logger = LoggerFactory.getLogger(QuizzPlayController.class);
     
 	/**
      * Submits the user's answers for a given quizz.
@@ -44,6 +49,8 @@ public class QuizzPlayController {
             @RequestBody List<UserAnswerCreateDTO> userAnswerCreateDTOs) {
 
         quizzPlayService.handleUserAnswers(quizzId, userAnswerCreateDTOs);
+        logger.info("User with the nickname '{}' has successfully answered the quizz with id '{}'", 
+        		SecurityUtils.getCurrentUser().getNickname(), quizzId);
         return ResponseEntity.status(HttpStatus.CREATED).body("Quizz play and answers created successfully.");
     }
     
@@ -62,6 +69,9 @@ public class QuizzPlayController {
             @RequestParam(defaultValue = "15") int size) {
 
         Page<QuizzPlayDTO> quizzPlayDTOs = quizzPlayService.getQuizzPlaysByQuizz(quizzId, page, size);
+        logger.info("User with the nickname '{}' has successfully retrieved the quizz plays for the quizz with id '{}' using "
+        		+ "params page '{}' and size '{}'", 
+        		SecurityUtils.getCurrentUser().getNickname(), quizzId, page, size);
         return ResponseEntity.status(HttpStatus.OK).body(quizzPlayDTOs);
     }
     
@@ -76,6 +86,8 @@ public class QuizzPlayController {
             @PathVariable Integer quizzPlayId) {
 
         List<UserAnswerDTO> userAnswerDTOs = userAnswerService.getAnswersByQuizzPlay(quizzPlayId);
+        logger.info("User with the nickname '{}' has successfully retrieved the user answers for the quizz play with id '{}'", 
+        		SecurityUtils.getCurrentUser().getNickname(), quizzPlayId);
         return ResponseEntity.status(HttpStatus.OK).body(userAnswerDTOs);
     }
 }

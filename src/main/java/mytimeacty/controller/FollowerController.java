@@ -1,5 +1,7 @@
 package mytimeacty.controller;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -24,6 +26,8 @@ public class FollowerController {
     @Autowired
     private FollowerService followerService;
     
+    private static final Logger logger = LoggerFactory.getLogger(FollowerController.class);
+    
     /**
      * Retrieves a paginated list of followers for a specified user.
      * 
@@ -42,6 +46,8 @@ public class FollowerController {
             @RequestParam(defaultValue = "15") int size) {
 
         Page<FollowerDTO> followers = followerService.getFollowersByUserId(userId, page, size);
+        logger.info("User with the nickname '{}' has successfully retrieved all followers of user with id '{}'", 
+        		SecurityUtils.getCurrentUser().getNickname(), userId);
         return ResponseEntity.status(HttpStatus.OK).body(followers);
     }
 
@@ -63,6 +69,8 @@ public class FollowerController {
             @RequestParam(defaultValue = "15") int size) {
 
         Page<FollowingDTO> followings = followerService.getFollowingsByUserId(userId, page, size);
+        logger.info("User with the nickname '{}' has successfully retrieved all followings of user with id '{}'", 
+        		SecurityUtils.getCurrentUser().getNickname(), userId);
         return ResponseEntity.status(HttpStatus.OK).body(followings);
     }
 
@@ -78,6 +86,8 @@ public class FollowerController {
     @PostMapping("/follow/{idUserFollowed}")
     public ResponseEntity<String> followUser(@PathVariable Integer idUserFollowed) {
     	followerService.followUser(SecurityUtils.getCurrentUser().getIdUser(), idUserFollowed);
+    	logger.info("User with the nickname '{}' has successfully follow the user with id '{}'", 
+        		SecurityUtils.getCurrentUser().getNickname(), idUserFollowed);
         return ResponseEntity.status(HttpStatus.CREATED).build(); 
     }
     
@@ -92,6 +102,8 @@ public class FollowerController {
     @DeleteMapping("/unfollow/{idUserFollowed}")
     public ResponseEntity<String> unfollowUser(@PathVariable Integer idUserFollowed) {
         followerService.unfollowUser(SecurityUtils.getCurrentUser().getIdUser(), idUserFollowed);
+        logger.info("User with the nickname '{}' has successfully unfollow the user with id '{}'", 
+        		SecurityUtils.getCurrentUser().getNickname(), idUserFollowed);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build(); 
     }
 }

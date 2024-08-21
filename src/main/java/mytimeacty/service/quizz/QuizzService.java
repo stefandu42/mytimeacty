@@ -1,5 +1,7 @@
 package mytimeacty.service.quizz;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -51,18 +53,29 @@ public class QuizzService {
     @Autowired
     private QuizzCategoryRepository quizzCategoryRepository;
     
+    private static final Logger logger = LoggerFactory.getLogger(QuizzService.class);
+    
     /**
      * Marks a quizz as hidden by setting the `isVisible` attribute to false.
      * 
      * @param quizzId the ID of the quizz to be hidden
      * @throws NotFoundException if the quizz is not found
      */
-    public void markQuizzAsHidden(int quizId) {
-        Quizz quiz = quizzRepository.findById(quizId)
-            .orElseThrow(() -> new NotFoundException("Quiz not found"));
-
-        quiz.setIsVisible(false);
-        quizzRepository.save(quiz);
+    public void markQuizzAsHidden(int quizzId) {
+    	String currentUserNickname = SecurityUtils.getCurrentUser().getNickname();
+    	logger.info("Entering method markQuizzAsHidden: User '{}'", currentUserNickname);
+    	
+    	Quizz quizz = quizzRepository.findById(quizzId)
+                .orElseThrow(() -> {
+                	logger.warn("Method markQuizzAsHidden: Quizz with ID {} not found. Current User nickname: {}",
+                			quizzId, currentUserNickname);
+                	return new NotFoundException("Quizz not found");
+                });
+        quizz.setIsVisible(false);
+        quizzRepository.save(quizz);
+        
+        logger.info("Method markQuizzAsHidden: Quizz with ID {} marked as hidden sucessfully. Current User nickname: {}",
+        		quizz.getIdQuizz(), currentUserNickname);
     }
     
     /**
@@ -77,13 +90,28 @@ public class QuizzService {
      */
     @Transactional
     public QuizzDTO createQuizz(QuizzCreateDTO quizzCreationDTO) {
+    	String currentUserNickname = SecurityUtils.getCurrentUser().getNickname();
+    	logger.info("Entering method createQuizz: User '{}'", currentUserNickname);
+    	
         // Get entities binded
         User creator = userRepository.findById(SecurityUtils.getCurrentUser().getIdUser())
-                .orElseThrow(() -> new UserNotFoundException("User not found"));
+		        .orElseThrow(() -> {
+		        	logger.warn("Method createQuizz: User with ID {} not found. Current User nickname: {}",
+		        			SecurityUtils.getCurrentUser().getIdUser(), currentUserNickname);
+		        	return new UserNotFoundException("User not found");
+		        });
         QuizzLevel level = quizzLevelRepository.findById(quizzCreationDTO.getLevelId())
-                .orElseThrow(() -> new NotFoundException("Level not found"));
+		        .orElseThrow(() -> {
+		        	logger.warn("Method createQuizz: Level with ID {} not found. Current User nickname: {}",
+		        			quizzCreationDTO.getLevelId(), currentUserNickname);
+		        	return new NotFoundException("Level not found");
+		        });
         QuizzCategory category = quizzCategoryRepository.findById(quizzCreationDTO.getCategoryId())
-                .orElseThrow(() -> new NotFoundException("Category not found"));
+		        .orElseThrow(() -> {
+		        	logger.warn("Method createQuizz: Category with ID {} not found. Current User nickname: {}",
+		        			quizzCreationDTO.getCategoryId(), currentUserNickname);
+		        	return new NotFoundException("Category not found");
+		        });
 
         // Build the quizz
         Quizz quizz = Quizz.builder()
@@ -96,6 +124,8 @@ public class QuizzService {
                 .build();
 
         quizz = quizzRepository.save(quizz);
+        logger.info("Method createQuizz: Quizz with ID {} created sucessfully. Current User nickname: {}",
+        		quizz.getIdQuizz(), currentUserNickname);
 
         // Build questions and answers
         for (QuestionCreateDTO questionDTO : quizzCreationDTO.getQuestions()) {
@@ -117,9 +147,12 @@ public class QuizzService {
 
                 quizzAnswerRepository.save(answer);
             }
+            
         }
-
-        return QuizzMapper.toDTO(quizz);
+        QuizzDTO quizzDTO = QuizzMapper.toDTO(quizz);
+        logger.info("Method createQuizz: Questions and answers of quizz with ID {} created sucessfully. Current User nickname: {}",
+        		quizz.getIdQuizz(), currentUserNickname);
+        return quizzDTO;
     }
     
     /**
@@ -136,6 +169,9 @@ public class QuizzService {
      * @return a page of `QuizzDTO` objects
      */
     public Page<QuizzDTO> getQuizzes(int page, int size, String title, String nickname, String categoryLabel, String levelLabel) {
+    	String currentUserNickname = SecurityUtils.getCurrentUser().getNickname();
+    	logger.info("Entering method getQuizzes: User '{}'", currentUserNickname);
+    	
     	Pageable pageable = PaginationUtils.createPageableSortByDesc(page, size, "createdAt");
         
         Specification<Quizz> spec = applyCommonSpecifications(title, categoryLabel, levelLabel);
@@ -146,7 +182,10 @@ public class QuizzService {
         
         Page<Quizz> quizzes = quizzRepository.findAll(spec, pageable);
         
-        return quizzes.map(QuizzMapper::toDTO);
+        Page<QuizzDTO> pageQuizzDTO = quizzes.map(QuizzMapper::toDTO);
+        logger.info("Method getQuizzes: Get quizzes sucessfully. Current User nickname: {}",
+        		currentUserNickname);
+        return pageQuizzDTO;
     }
     
     /**
@@ -161,7 +200,13 @@ public class QuizzService {
      * @return a page of `QuizzDTO` objects
      */
     public Page<QuizzDTO> getLikedQuizzes(int userId, int page, int size, String title, String categoryLabel, String levelLabel) {
-        return getFilteredQuizzes(QuizzSpecifications.isLikedByUser(userId), page, size, title, categoryLabel, levelLabel);
+    	String currentUserNickname = SecurityUtils.getCurrentUser().getNickname();
+    	logger.info("Entering method getLikedQuizzes: User '{}'", currentUserNickname);
+    	
+    	Page<QuizzDTO> pageQuizzDTO = getFilteredQuizzes(QuizzSpecifications.isLikedByUser(userId), page, size, title, categoryLabel, levelLabel);
+        logger.info("Method getLikedQuizzes: Get liked quizzes sucessfully. Current User nickname: {}",
+        		currentUserNickname);
+        return pageQuizzDTO;
     }
 
     /**
@@ -176,7 +221,13 @@ public class QuizzService {
      * @return a page of `QuizzDTO` objects
      */
     public Page<QuizzDTO> getFavouriteQuizzes(int userId, int page, int size, String title, String categoryLabel, String levelLabel) {
-        return getFilteredQuizzes(QuizzSpecifications.isFavouritedByUser(userId), page, size, title, categoryLabel, levelLabel);
+    	String currentUserNickname = SecurityUtils.getCurrentUser().getNickname();
+    	logger.info("Entering method getFavouriteQuizzes: User '{}'", currentUserNickname);
+    	
+    	Page<QuizzDTO> pageQuizzDTO =  getFilteredQuizzes(QuizzSpecifications.isFavouritedByUser(userId), page, size, title, categoryLabel, levelLabel);
+    	logger.info("Method getFavouriteQuizzes: Get favourite quizzes sucessfully. Current User nickname: {}",
+        		currentUserNickname);
+        return pageQuizzDTO;
     }
     
     /**
@@ -192,7 +243,7 @@ public class QuizzService {
      * @return a page of `QuizzDTO` objects
      */
     private Page<QuizzDTO> getFilteredQuizzes(Specification<Quizz> additionalSpec, int page, int size, String title, String categoryLabel, String levelLabel) {
-        Pageable pageable = PaginationUtils.createPageableSortByDesc(page, size, "createdAt");
+    	Pageable pageable = PaginationUtils.createPageableSortByDesc(page, size, "createdAt");
         Specification<Quizz> spec = applyCommonSpecifications(title, categoryLabel, levelLabel);
         
         if (additionalSpec != null) {

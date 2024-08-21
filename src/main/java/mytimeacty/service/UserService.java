@@ -4,6 +4,8 @@ import java.util.List;
 
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -44,6 +46,8 @@ public class UserService {
     @Autowired
     private FollowerRepository followerRepository;
     
+    private static final Logger logger = LoggerFactory.getLogger(UserService.class);
+    
 
     /**
      * Creates a new user with the provided details.
@@ -53,9 +57,14 @@ public class UserService {
      * @throws UserAlreadyExistsException if the email or nickname is already in use
      */
     public UserDTO createUser(UserCreateDTO userCreateDTO) {
-        if (userRepository.findByEmailIgnoreCase(userCreateDTO.getEmail()).isPresent() || 
-        		userRepository.findByNicknameIgnoreCase(userCreateDTO.getNickname()).isPresent()) {
-            throw new UserAlreadyExistsException("Email or nickname already in use");
+        if (userRepository.findByEmailIgnoreCase(userCreateDTO.getEmail()).isPresent()) {
+        	logger.warn("Method createUser: Email '{}' already in use)", userCreateDTO.getEmail());
+            throw new UserAlreadyExistsException("Email already in use");
+        }
+        
+        if (userRepository.findByNicknameIgnoreCase(userCreateDTO.getNickname()).isPresent()) {
+        	logger.warn("Method createUser: Nickname '{}' already in use)", userCreateDTO.getNickname());
+            throw new UserAlreadyExistsException("Nickname already in use");
         }
         
     	
@@ -68,7 +77,13 @@ public class UserService {
                         .build();
         
         User savedUser = userRepository.save(user);
-        return UserMapper.toDTO(savedUser);
+        
+        UserDTO userDTO = UserMapper.toDTO(savedUser);
+        
+        logger.info("Method createUser: User with nickname '{}' created sucessfully",
+        		userCreateDTO.getNickname());
+        
+        return userDTO;
     }
     
     /**
@@ -80,9 +95,13 @@ public class UserService {
      * @return a page of UserDetailsDTO objects
      */
     public Page<UserDetailsDTO> getFilteredUsers(String nickname, int page, int size) {
+    	UserDTO currentUserDTO = SecurityUtils.getCurrentUser();
+    	logger.info("Entering method getFilteredUsers: User '{}'", currentUserDTO.getNickname());
+    	
         Pageable pageable = PaginationUtils.createPageableSortByAsc(page, size, "nickname");
         List<User> users = userRepository.findByNicknameContainingIgnoreCase(nickname.trim(), pageable);
-        User currentUser = this.getUserByIdData(SecurityUtils.getCurrentUser().getIdUser());
+        
+        User currentUser = this.getUserByIdData(currentUserDTO.getIdUser());
         
         List<CompletableFuture<UserDetailsDTO>> futures = users.stream()
                 .filter(user -> !user.getIdUser().equals(currentUser.getIdUser()))
@@ -106,7 +125,11 @@ public class UserService {
                 .map(CompletableFuture::join) // Wait for all futures to complete
                 .collect(Collectors.toList());
         
-        return new PageImpl<>(userDetailsDTOs, pageable, userDetailsDTOs.size());
+        Page<UserDetailsDTO> pageUserDetailsDTO = new PageImpl<>(userDetailsDTOs, pageable, userDetailsDTOs.size());
+        
+        logger.info("Method getFilteredUsers: Users retrieved sucessfully filtered by nickname '{}'", nickname);
+        
+        return pageUserDetailsDTO;
     }
     
     /**
@@ -118,7 +141,11 @@ public class UserService {
      */
     private User getUserByIdData(int userId) {
     	return userRepository.findById(userId)
-    			.orElseThrow(() -> new NotFoundException("User not found"));
+    			.orElseThrow(() -> {
+    				logger.warn("Method getUserByIdData: User with ID {} not found",
+    						userId);
+    				return new UserNotFoundException("User not found");
+    			});
     }
     
     /**
@@ -129,7 +156,7 @@ public class UserService {
      * @throws NotFoundException if the user is not found
      */
     public UserDTO getUserById(int userId) {
-	    return UserMapper.toDTO(this.getUserByIdData(userId));
+    	return UserMapper.toDTO(this.getUserByIdData(userId));
     }
     
     /**
@@ -140,20 +167,31 @@ public class UserService {
      * @throws UserNotFoundException if the user is not found
      */
     public UserProfileDTO getUserProfile(int userId) {
+    	String currentUserNickname = SecurityUtils.getCurrentUser().getNickname();
+    	logger.info("Entering method getUserProfile: User '{}'", currentUserNickname);
+    	
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException("User not found"));
+		        .orElseThrow(() -> {
+					logger.warn("Method getUserProfile: User with ID {} not found. Current User nickname: {}",
+							userId, currentUserNickname);
+					return new UserNotFoundException("User not found");
+				});
 
         // get the number of followers and subscriptions
         int followersCount = (int) followerRepository.countByUserFollowed(user);
         int followingCount = (int) followerRepository.countByFollower(user);
 
-        return UserProfileDTO.builder()
+        UserProfileDTO userProfile = UserProfileDTO.builder()
                 .userId(user.getIdUser())
                 .nickname(user.getNickname())
                 .email(user.getEmail())
                 .followersCount(followersCount)
                 .followingCount(followingCount)
                 .build();
+        
+        logger.info("Method getUserProfile: User profile with ID {} retrieved sucessfully. Current User nickname: {}", userId, currentUserNickname);
+        
+        return userProfile;
     }
     
     /**
@@ -163,12 +201,17 @@ public class UserService {
      * @throws ForbiddenException if the current user does not have permission to ban the target user
      */
     public void banUser(int userId) {
+    	String currentUserNickname = SecurityUtils.getCurrentUser().getNickname();
+    	logger.info("Entering method banUser: User '{}'", currentUserNickname);
+    	
         User user = this.getUserByIdData(userId);
         User currentUser = this.getUserByIdData(SecurityUtils.getCurrentUser().getIdUser());
         
         validateRoleChangeBanAndUban(currentUser, user, "ban");
         
         updateUserRole(user, UserRole.BANNED.getRole());
+        
+        logger.info("Method banUser: User with ID {} banned sucessfully. Current User nickname: {}", userId, currentUserNickname);
     }
 
     /**
@@ -178,12 +221,18 @@ public class UserService {
      * @throws ForbiddenException if the current user does not have permission to unban the target user
      */
 	public void unbanUser(int userId) {
+		String currentUserNickname = SecurityUtils.getCurrentUser().getNickname();
+    	logger.info("Entering method unbanUser: User '{}'", currentUserNickname);
+    	
 		User user = this.getUserByIdData(userId);
         User currentUser = this.getUserByIdData(SecurityUtils.getCurrentUser().getIdUser());
         
         validateRoleChangeBanAndUban(currentUser, user, "unban");
         
         updateUserRole(user, UserRole.fromString(user.getUserPreviousRole()).getRole());
+        
+        logger.info("Method unbanUser: User with ID {} unbanned sucessfully and his previous role is restored. Current User nickname: {}", 
+        		userId, currentUserNickname);
 	}
 	
 	/**
@@ -196,31 +245,47 @@ public class UserService {
      */
 	private void validateRoleChangeBanAndUban(User currentUser, User targetUser, String action) {
 	    if (targetUser.getIdUser().equals(currentUser.getIdUser())) {
+	    	logger.warn("Method validateRoleChangeBanAndUban: You cannot change your own role. Current User nickname: {}",
+        			currentUser.getNickname());
 	        throw new ForbiddenException("You cannot change your own role");
 	    }
 
 	    if (currentUser.getUserRole().equals(UserRole.USER.getRole())) {
+	    	logger.warn("Method validateRoleChangeBanAndUban: Users are not allowed to {} users. Current User nickname: {}",
+        			action, currentUser.getNickname());
 	        throw new ForbiddenException("Users are not allowed to " + action + " users");
 	    }
 
 	    // Role-specific checks
 	    if (action.equals("ban")) {
-	    	if(targetUser.getUserRole().equals(UserRole.BANNED.getRole()))
+	    	if(targetUser.getUserRole().equals(UserRole.BANNED.getRole())) {
+	    		logger.warn("Method validateRoleChangeBanAndUban: User with ID {} is already banned. Current User nickname: {}",
+	        			targetUser.getIdUser(), currentUser.getNickname());
 	        	throw new ForbiddenException("User is already banned");
+	    	}
 	    	
 	        if (currentUser.getUserRole().equals(UserRole.ADMIN.getRole()) && 
 	            (targetUser.getUserRole().equals(UserRole.ADMIN.getRole()) || targetUser.getUserRole().equals(UserRole.CHIEF.getRole()))) {
+	        	logger.warn("Method validateRoleChangeBanAndUban: Admins can only ban users. Current User nickname: {}",
+	        			currentUser.getNickname());
 	            throw new ForbiddenException("Admins can only ban users");
 	        }
 	        
 	        if (currentUser.getUserRole().equals(UserRole.CHIEF.getRole()) && targetUser.getUserRole().equals(UserRole.CHIEF.getRole())) {
+	        	logger.warn("Method validateRoleChangeBanAndUban: Chiefs can only ban users and admins. Current User nickname: {}",
+	        			currentUser.getNickname());
 	            throw new ForbiddenException("Chiefs can only ban users and admins");
 	        }
 	    } else if (action.equals("unban")) {
-	    	if(!targetUser.getUserRole().equals(UserRole.BANNED.getRole()))
+	    	if(!targetUser.getUserRole().equals(UserRole.BANNED.getRole())) {
+	    		logger.warn("Method validateRoleChangeBanAndUban: User with ID {} is not banned. Current User nickname: {}",
+	    				targetUser.getIdUser(), currentUser.getNickname());
 	        	throw new ForbiddenException("User is not banned");
+	    	}
 	    	
 	        if (currentUser.getUserRole().equals(UserRole.ADMIN.getRole()) && !targetUser.getUserPreviousRole().equals(UserRole.USER.getRole())) {
+	        	logger.warn("Method validateRoleChangeBanAndUban: Admins can only unban users. Current User nickname: {}",
+	    				currentUser.getNickname());
 	            throw new ForbiddenException("Admins can only unban users");
 	        }
 	    }
@@ -235,12 +300,18 @@ public class UserService {
 	 * @throws ForbiddenException If the target user is not eligible for promotion.
 	 */
 	public void promoteUserToAdmin(int userId) {
+		String currentUserNickname = SecurityUtils.getCurrentUser().getNickname();
+    	logger.info("Entering method promoteUserToAdmin: User '{}'", currentUserNickname);
+    	
 	    User user = getUserByIdData(userId);
 	    User currentUser = getUserByIdData(SecurityUtils.getCurrentUser().getIdUser());
 	    
 	    validateRoleChangePromoteAndDemote(currentUser, user, UserRole.USER.getRole());
 	    
 	    updateUserRole(user, UserRole.ADMIN.getRole());
+	    
+	    logger.info("Method promoteUserToAdmin: User with ID {} promoted to admin sucessfully. Current User nickname: {}", 
+        		userId, currentUserNickname);
 	}
 
 	/**
@@ -252,12 +323,18 @@ public class UserService {
 	 * @throws ForbiddenException If the target admin is not eligible for promotion.
 	 */
 	public void promoteAdminToChief(int userId) {
+		String currentUserNickname = SecurityUtils.getCurrentUser().getNickname();
+    	logger.info("Entering method promoteAdminToChief: User '{}'", currentUserNickname);
+    	
 	    User user = getUserByIdData(userId);
 	    User currentUser = getUserByIdData(SecurityUtils.getCurrentUser().getIdUser());
 	    
 	    validateRoleChangePromoteAndDemote(currentUser, user, UserRole.ADMIN.getRole());
 	    
 	    updateUserRole(user, UserRole.CHIEF.getRole());
+	    
+	    logger.info("Method promoteAdminToChief: Admin with ID {} promoted to chief sucessfully. Current User nickname: {}", 
+        		userId, currentUserNickname);
 	}
 
 	/**
@@ -269,12 +346,18 @@ public class UserService {
 	 * @throws ForbiddenException If the target admin is not eligible for demotion.
 	 */
 	public void demoteAdminToUser(int userId) {
+		String currentUserNickname = SecurityUtils.getCurrentUser().getNickname();
+    	logger.info("Entering method demoteAdminToUser: User '{}'", currentUserNickname);
+    	
 	    User user = getUserByIdData(userId);
 	    User currentUser = getUserByIdData(SecurityUtils.getCurrentUser().getIdUser());
 	    
 	    validateRoleChangePromoteAndDemote(currentUser, user, UserRole.ADMIN.getRole());
 	    
 	    updateUserRole(user, UserRole.USER.getRole());
+	    
+	    logger.info("Method demoteAdminToUser: Admin with ID {} demoted to user sucessfully. Current User nickname: {}", 
+        		userId, currentUserNickname);
 	}
     
     /**
@@ -287,10 +370,14 @@ public class UserService {
      */
     private void validateRoleChangePromoteAndDemote(User currentUser, User targetUser, String requiredRoleForTarget) {
         if (targetUser.getIdUser().equals(currentUser.getIdUser())) {
+        	logger.warn("Method validateRoleChangePromoteAndDemote: You cannot change your own role. Current User nickname: {}",
+        			currentUser.getNickname());
             throw new ForbiddenException("You cannot change your own role");
         }
 
         if (!targetUser.getUserRole().equals(requiredRoleForTarget)) {
+        	logger.warn("Method validateRoleChangePromoteAndDemote: Only "+ requiredRoleForTarget + "s can be promoted/demoted to this role. "
+        			+ "Current User nickname: {}", currentUser.getNickname());
             throw new ForbiddenException("Only " + requiredRoleForTarget + "s can be promoted/demoted to this role");
         }
     }

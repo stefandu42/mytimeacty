@@ -2,6 +2,8 @@ package mytimeacty.controller;
 
 import javax.naming.AuthenticationException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,6 +24,8 @@ public class AuthController {
 	@Autowired
 	private AuthenticationService authenticationService;
 	
+	private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
+	
 	/**
      * Authenticates a user and returns an authentication token.
      * 
@@ -36,8 +40,10 @@ public class AuthController {
 	public ResponseEntity<String> getToken(@Valid @RequestBody LoginDTO loginDTO) {
 		try {
             String token = authenticationService.authenticateUser(loginDTO);
+            logger.info("User with nickname/email '{}' sucessfully connected with token '{}'", loginDTO.getNicknameOrEmail(), token);
             return ResponseEntity.status(HttpStatus.OK).body(token);
         } catch (UserNotFoundException | AuthenticationException e) {
+        	logger.warn("Unauthorized: Invalid nickname/email or wrong password for user '{}'", loginDTO.getNicknameOrEmail());
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid nickname/email or wrong password");
         }
 	}
@@ -53,6 +59,7 @@ public class AuthController {
 	@PostMapping("/register")
     public ResponseEntity<String> createUserAndGetToken(@Valid @RequestBody UserCreateDTO userCreateDTO) {
 		String token = authenticationService.registerUser(userCreateDTO);
+		logger.info("User with nickname '{}'sucessfully registered and connected with token {}", userCreateDTO.getNickname(), token);
 	    return ResponseEntity.status(HttpStatus.OK).body(token);
     }
 }

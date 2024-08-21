@@ -1,5 +1,7 @@
 package mytimeacty.controller;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -36,6 +38,8 @@ public class QuizzController {
 	@Autowired
     private QuizzService quizzService;
 	
+	private static final Logger logger = LoggerFactory.getLogger(QuizzController.class);
+	
 	/**
      * Creates a new quizz.
      *
@@ -45,6 +49,8 @@ public class QuizzController {
 	@PostMapping
     public ResponseEntity<QuizzDTO> createQuizz(@Valid @RequestBody QuizzCreateDTO quizzCreationDTO) {
         QuizzDTO createdQuizz = quizzService.createQuizz(quizzCreationDTO);
+        logger.info("User with the nickname '{}' has successfully created a quizz with id '{}'", 
+        		SecurityUtils.getCurrentUser().getNickname(), createdQuizz.getIdQuizz());
         return ResponseEntity.status(HttpStatus.CREATED).body(createdQuizz);
     }
 	
@@ -70,6 +76,9 @@ public class QuizzController {
         
         Page<QuizzDTO> quizzes = quizzService.getQuizzes(page, size, title, nickname, categoryLabel, levelLabel);
         
+        logger.info("User with the nickname '{}' has successfully retrieved all quizzes with params page '{}', size '{}', "
+        		+ "title '{}', nickname '{}', category label '{}' and level label '{}'", 
+        		SecurityUtils.getCurrentUser().getNickname(), page, size, title, nickname, categoryLabel, levelLabel);
         return ResponseEntity.status(HttpStatus.OK).body(quizzes);
     }
 	
@@ -95,6 +104,9 @@ public class QuizzController {
 	    
 	    Page<QuizzDTO> quizzes = quizzService.getLikedQuizzes(idUser, page, size, title, categoryLabel, levelLabel);
 	    
+	    logger.info("User with the nickname '{}' has successfully retrieved all quizzes liked by user with id '{}' using params page '{}', size '{}', "
+        		+ "title '{}', category label '{}' and level label '{}'", 
+        		SecurityUtils.getCurrentUser().getNickname(), idUser, page, size, title, categoryLabel, levelLabel);
 	    return ResponseEntity.status(HttpStatus.OK).body(quizzes);
 	}
 	
@@ -120,6 +132,9 @@ public class QuizzController {
 	    
 	    Page<QuizzDTO> quizzes = quizzService.getFavouriteQuizzes(idUser, page, size, title, categoryLabel, levelLabel);
 	    
+	    logger.info("User with the nickname '{}' has successfully retrieved all quizzes favourited by user with id '{}' using params page '{}', size '{}', "
+        		+ "title '{}', category label '{}' and level label '{}'", 
+        		SecurityUtils.getCurrentUser().getNickname(), idUser, page, size, title, categoryLabel, levelLabel);
 	    return ResponseEntity.status(HttpStatus.OK).body(quizzes);
 	}
 	
@@ -132,6 +147,8 @@ public class QuizzController {
 	@PostMapping("/favourite/{idQuizz}")
 	public ResponseEntity<String> favouriteQuizz(@PathVariable Integer idQuizz) {
 	    quizzFavouriteService.favouriteQuizz(SecurityUtils.getCurrentUser().getIdUser(), idQuizz);
+	    logger.info("User with the nickname '{}' has successfully marked the quizz with id '{}' as favourite", 
+        		SecurityUtils.getCurrentUser().getNickname(), idQuizz);
 	    return ResponseEntity.status(HttpStatus.CREATED).build();
 	}
 
@@ -144,6 +161,8 @@ public class QuizzController {
     @DeleteMapping("/favourite/{idQuizz}")
     public ResponseEntity<Void> unfavouriteQuizz(@PathVariable Integer idQuizz) {
         quizzFavouriteService.unfavouriteQuizz(SecurityUtils.getCurrentUser().getIdUser(), idQuizz);
+        logger.info("User with the nickname '{}' has successfully remove the quizz with id '{}' as favourite", 
+        		SecurityUtils.getCurrentUser().getNickname(), idQuizz);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build(); 
     }
     
@@ -156,6 +175,8 @@ public class QuizzController {
     @PostMapping("/like/{idQuizz}")
     public ResponseEntity<String> likeQuizz(@PathVariable Integer idQuizz) {
     	quizzLikeService.likeQuizz(SecurityUtils.getCurrentUser().getIdUser(), idQuizz);
+    	logger.info("User with the nickname '{}' has successfully marked the quizz with id '{}' as liked", 
+        		SecurityUtils.getCurrentUser().getNickname(), idQuizz);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
@@ -168,6 +189,8 @@ public class QuizzController {
     @DeleteMapping("/like/{idQuizz}")
     public ResponseEntity<Void> unlikeQuizz(@PathVariable Integer idQuizz) {
         quizzLikeService.unlikeQuizz(SecurityUtils.getCurrentUser().getIdUser(), idQuizz);
+        logger.info("User with the nickname '{}' has successfully remove the quizz with id '{}' as liked", 
+        		SecurityUtils.getCurrentUser().getNickname(), idQuizz);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build(); 
     }
 	
@@ -178,9 +201,11 @@ public class QuizzController {
      * @return a ResponseEntity with a confirmation message and HTTP status 200 OK.
      */
     @RolesAllowed({"admin", "chief"})
-    @PutMapping("/{quizId}/hide")
+    @PutMapping("/{quizzId}/hide")
     public ResponseEntity<String> hideQuiz(@PathVariable int quizzId) {
         quizzService.markQuizzAsHidden(quizzId);
+        logger.info("User with the nickname '{}' (role: '{}') has successfully marked the quizz with id '{}' as hidden", 
+        		SecurityUtils.getCurrentUser().getNickname(), SecurityUtils.getCurrentUser().getUserRole(), quizzId);
         return ResponseEntity.status(HttpStatus.OK).body("Quiz hidden successfully");
     }
 	

@@ -7,6 +7,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
@@ -50,6 +52,8 @@ public class QuizzPlayService {
     @Autowired
     private UserAnswerRepository userAnswerRepository;
     
+    private static final Logger logger = LoggerFactory.getLogger(QuizzPlayService.class);
+    
     /**
      * Retrieves a paginated list of `QuizzPlayDTO` objects associated with a specific quizz.
      * The results are sorted in descending order based on the `playedAt` timestamp.
@@ -61,10 +65,16 @@ public class QuizzPlayService {
      * @throws NotFoundException if the quizz is not found
      */
     public Page<QuizzPlayDTO> getQuizzPlaysByQuizz(Integer quizzId, int page, int size) {
+    	String currentUserNickname = SecurityUtils.getCurrentUser().getNickname();
+    	logger.info("Entering method getQuizzPlaysByQuizz: User '{}'", currentUserNickname);
+    	
         Pageable pageable = PaginationUtils.createPageableSortByDesc(page, size, "playedAt");
         Page<QuizzPlay> quizzPlays = quizzPlayRepository.findByQuizzIdQuizz(quizzId, pageable);
 
-        return quizzPlays.map(QuizzPlayMapper::toDTO);
+        Page<QuizzPlayDTO> pageQuizzPlayDTO = quizzPlays.map(QuizzPlayMapper::toDTO);
+        logger.info("Method getQuizzPlaysByQuizz: Get quizz plays of quizz with ID {} created sucessfully. Current User nickname: {}",
+        		quizzId, currentUserNickname);
+        return pageQuizzPlayDTO;
     }
 
     /**
@@ -79,8 +89,15 @@ public class QuizzPlayService {
      */
     @Transactional
     public void handleUserAnswers(Integer quizzId, List<UserAnswerCreateDTO> userAnswerCreateDTOs) {
+    	String currentUserNickname = SecurityUtils.getCurrentUser().getNickname();
+    	logger.info("Entering method handleUserAnswers: User '{}'", currentUserNickname);
+    	
         Quizz quizz = quizzRepository.findById(quizzId)
-                .orElseThrow(() -> new NotFoundException("Quizz not found"));
+		        .orElseThrow(() -> {
+		        	logger.warn("Method handleUserAnswers: Quizz with ID {} not found. Current User nickname: {}",
+		        			quizzId, currentUserNickname);
+		        	return new NotFoundException("Quizz not found");
+		        });
         
         User currentUser = userRepository.findById(SecurityUtils.getCurrentUser().getIdUser())
                 .orElseThrow(() -> new NotFoundException("User not found"));
@@ -100,6 +117,8 @@ public class QuizzPlayService {
         
         // Check if all questions are answered
         if (answersByQuestion.size() != quizQuestions.size()) {
+        	logger.warn("Method handleUserAnswers: Not all questions have been answered. Current User nickname: {}",
+        			quizzId, currentUserNickname);
             throw new IllegalArgumentException("Not all questions have been answered.");
         }
 
@@ -122,6 +141,9 @@ public class QuizzPlayService {
         
         QuizzPlay quizzPlay = quizzPlayRepository.save(quizzPlayTemp);
         
+        logger.info("Method handleUserAnswers: Quizz play for quizz with ID {} created sucessfully. Current User nickname: {}",
+        		quizzId, currentUserNickname);
+        
         // Bind answers to QuizzPlay
         List<UserAnswer> userAnswers = userAnswerCreateDTOs.stream()
                 .map(dto -> {
@@ -130,6 +152,8 @@ public class QuizzPlayService {
                 	// If the answer doesn't belong to the Quizz
                 	QuizzQuestion question = answer.getQuestion();
                     if (!quizz.getQuizzQuestions().contains(question)) {
+                    	logger.warn("Method handleUserAnswers: The answer (id: "+ answer.getIdAnswer() + ") does not belong to the quizz played (id: "+quizzId+"). Current User nickname: {}",
+                    			quizzId, currentUserNickname);
                         throw new IllegalArgumentException("The answer (id:" + answer.getIdAnswer() + ") does not belong to the quizz played");
                     }
                     
@@ -141,6 +165,9 @@ public class QuizzPlayService {
                 .collect(Collectors.toList());
         
         userAnswerRepository.saveAll(userAnswers);
+        
+        logger.info("Method handleUserAnswers: Answers for quizz play with ID {} created sucessfully. Current User nickname: {}",
+        		quizzPlay.getIdQuizzPlay(), currentUserNickname);
     }
 
     

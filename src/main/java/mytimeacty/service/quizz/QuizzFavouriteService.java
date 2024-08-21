@@ -1,5 +1,7 @@
 package mytimeacty.service.quizz;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -12,6 +14,7 @@ import mytimeacty.model.users.User;
 import mytimeacty.repository.UserRepository;
 import mytimeacty.repository.quizz.QuizzFavouriteRepository;
 import mytimeacty.repository.quizz.QuizzRepository;
+import mytimeacty.utils.SecurityUtils;
 
 @Service
 public class QuizzFavouriteService {
@@ -24,6 +27,8 @@ public class QuizzFavouriteService {
 
     @Autowired
     private QuizzFavouriteRepository quizzFavouriteRepository;
+    
+    private static final Logger logger = LoggerFactory.getLogger(QuizzFavouriteService.class);
 
     /**
      * Adds a quizz to the user's list of favourites.
@@ -38,10 +43,20 @@ public class QuizzFavouriteService {
      * @throws UserNotFoundException if the user is not found
      */
     public void favouriteQuizz(Integer userId, Integer quizzId) {
+    	String currentUserNickname= SecurityUtils.getCurrentUser().getNickname();
+    	logger.info("Entering method favouriteQuizz: User '{}'", currentUserNickname);
     	Quizz quizz = quizzRepository.findById(quizzId)
-                .orElseThrow(() -> new NotFoundException("Quizz not found"));
+                .orElseThrow(() -> {
+                	logger.warn("Method favouriteQuizz: Quizz with ID {} not found. Current User nickname: {}",
+                			quizzId, currentUserNickname);
+                	return new NotFoundException("Quizz not found");
+                });
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException("User not found"));
+                .orElseThrow(() -> {
+                	logger.warn("Method favouriteQuizz: User with ID {} not found. Current User nickname: {}",
+                			userId, currentUserNickname);
+                	return new UserNotFoundException("User not found");
+                });
     	
         QuizzFavouriteId quizzFavouriteId = new QuizzFavouriteId(quizzId, userId);
         if (!quizzFavouriteRepository.existsById(quizzFavouriteId)) {
@@ -60,6 +75,9 @@ public class QuizzFavouriteService {
      * @param quizzId the ID of the quizz to be unfavourited
      */
     public void unfavouriteQuizz(Integer userId, Integer quizzId) {
+    	String currentUserNickname = SecurityUtils.getCurrentUser().getNickname();
+    	logger.info("Entering method unfavouriteQuizz: User '{}'", currentUserNickname);
+    	
         QuizzFavouriteId quizzFavouriteId = new QuizzFavouriteId(quizzId, userId);
         quizzFavouriteRepository.deleteById(quizzFavouriteId);
     }

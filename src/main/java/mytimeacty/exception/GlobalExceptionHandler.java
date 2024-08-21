@@ -1,5 +1,7 @@
 package mytimeacty.exception;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -14,10 +16,12 @@ import java.util.Map;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
+	private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 	
 	@ExceptionHandler(HttpMessageNotReadableException.class)
 	@ResponseStatus(HttpStatus.BAD_REQUEST)
     public ResponseEntity<Object> handleTypeMismatch(HttpMessageNotReadableException ex) {
+		logger.warn("Malformed JSON request or invalid data type : \n{}", ex.getMessage());
 		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Malformed JSON request or invalid data type");
     }
 
@@ -25,17 +29,22 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ResponseEntity<Map<String, String>> handleValidationExceptions(MethodArgumentNotValidException ex) {
         Map<String, String> errors = new HashMap<>();
+        StringBuilder errorMessages = new StringBuilder("Validation errors:\n");
+        
         ex.getBindingResult().getAllErrors().forEach((error) -> {
             String fieldName = ((FieldError) error).getField();
             String errorMessage = error.getDefaultMessage();
             errors.put(fieldName, errorMessage);
+            errorMessages.append(String.format("Field '%s': %s%n", fieldName, errorMessage));
         });
+        logger.warn(errorMessages.toString());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errors);
     }
     
     @ExceptionHandler(Exception.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ResponseEntity<String> handleException(Exception ex) {
-    	System.out.println(ex.getMessage());
+    	logger.error("Internal error : \n{}", ex.getMessage());
     	return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An unexpected error occurred");
     }
     

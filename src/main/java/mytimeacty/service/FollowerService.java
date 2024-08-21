@@ -1,5 +1,7 @@
 package mytimeacty.service;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -26,6 +28,8 @@ public class FollowerService {
 
     @Autowired
     private UserRepository userRepository;
+    
+    private static final Logger logger = LoggerFactory.getLogger(FollowerService.class);
 
     /**
      * Allows a user to follow another user and returns the follow as a DTO.
@@ -37,12 +41,26 @@ public class FollowerService {
      * @throws ForbiddenException if the follower is the followed user
      */
     public FollowerDTO followUser(Integer idFollower, Integer idUserFollowed) {
-    	if (SecurityUtils.getCurrentUser().getIdUser().equals(idUserFollowed))
+    	String currentUserNickname = SecurityUtils.getCurrentUser().getNickname();
+    	logger.info("Entering method followUser: User '{}'", currentUserNickname);
+    	
+    	if (SecurityUtils.getCurrentUser().getIdUser().equals(idUserFollowed)) {
+    		logger.warn("Method followUser: You cannot follow yourself. Current User nickname: {}",
+        			currentUserNickname);
             throw new ForbiddenException("You cannot follow yourself");
+    	}
         User follower = userRepository.findById(idFollower)
-                .orElseThrow(() -> new UserNotFoundException("User follower not found"));
+		        .orElseThrow(() -> {
+		        	logger.warn("Method followUser: User with ID {} not found. Current User nickname: {}",
+		        			idFollower, currentUserNickname);
+		        	return new UserNotFoundException("User follower not found");
+		        });
         User userFollowed = userRepository.findById(idUserFollowed)
-                .orElseThrow(() -> new UserNotFoundException("User followed not found"));
+		        .orElseThrow(() -> {
+		        	logger.warn("Method followUser: User with ID {} not found. Current User nickname: {}",
+		        			idUserFollowed, currentUserNickname);
+		        	return new UserNotFoundException("User followed not found");
+		        });
 
         FollowerId followerId = new FollowerId(idFollower, idUserFollowed);
 
@@ -52,7 +70,12 @@ public class FollowerService {
                 .userFollowed(userFollowed)
                 .build();
 
-        return FollowerMapper.convertToFollowerDTO(followerRepository.save(followerEntity));
+        FollowerDTO followerDTO = FollowerMapper.convertToFollowerDTO(followerRepository.save(followerEntity));
+        
+        logger.info("Method followUser: Follow user with ID {} created sucessfully. Current User nickname: {}",
+        		idUserFollowed, currentUserNickname);
+        
+        return followerDTO;
     }
     
     /**
@@ -63,8 +86,14 @@ public class FollowerService {
      * @throws UserNotFoundException if the follower or the followed user does not exist
      */
     public void unfollowUser(Integer idFollower, Integer idUserFollowed) {
+    	String currentUserNickname = SecurityUtils.getCurrentUser().getNickname();
+    	logger.info("Entering method unfollowUser: User '{}'", currentUserNickname);
+    	
         FollowerId followerId = new FollowerId(idFollower, idUserFollowed);
         followerRepository.deleteById(followerId);
+        
+        logger.info("Method unfollowUser: Follow user with ID {} removed sucessfully. Current User nickname: {}",
+        		idUserFollowed, currentUserNickname);
     }
     
     /**
@@ -77,11 +106,19 @@ public class FollowerService {
      * @throws UserNotFoundException if the user with the specified ID is not found
      */
     public Page<FollowerDTO> getFollowersByUserId(Integer userId, int page, int size) {
+    	String currentUserNickname = SecurityUtils.getCurrentUser().getNickname();
+    	logger.info("Entering method getFollowersByUserId: User '{}'", currentUserNickname);
+    	
     	userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException("User not found"));
     	
         Pageable pageable = PaginationUtils.createPageable(page, size);
         Page<Follower> followers = followerRepository.findByUserFollowedIdUser(userId, pageable);
-        return followers.map(FollowerMapper::convertToFollowerDTO);
+        Page<FollowerDTO> pageFollowerDTO =  followers.map(FollowerMapper::convertToFollowerDTO);
+        
+        logger.info("Method getFollowersByUserId: Followers of user with ID {} retrived sucessfully. Current User nickname: {}",
+        		userId, currentUserNickname);
+        
+        return pageFollowerDTO;
     }
 
     /**
@@ -94,11 +131,19 @@ public class FollowerService {
      * @throws UserNotFoundException if the user with the specified ID is not found
      */
     public Page<FollowingDTO> getFollowingsByUserId(Integer userId, int page, int size) {
+    	String currentUserNickname = SecurityUtils.getCurrentUser().getNickname();
+    	logger.info("Entering method getFollowingsByUserId: User '{}'", currentUserNickname);
+    	
     	userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException("User not found"));
     	
         Pageable pageable = PaginationUtils.createPageable(page, size);
         Page<Follower> followings = followerRepository.findByFollowerIdUser(userId, pageable);
-        return followings.map(FollowerMapper::convertToFollowingDTO);
+        Page<FollowingDTO> pageFollowingDTO = followings.map(FollowerMapper::convertToFollowingDTO);
+        
+        logger.info("Method getFollowingsByUserId: Followings of user with ID {} retrived sucessfully. Current User nickname: {}",
+        		userId, currentUserNickname);
+        
+        return pageFollowingDTO;
     }
     
     
