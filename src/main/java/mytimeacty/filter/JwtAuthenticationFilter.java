@@ -10,6 +10,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import mytimeacty.model.users.dto.UserDTO;
 import mytimeacty.model.users.enums.UserRole;
 import mytimeacty.service.UserService;
+import mytimeacty.service.JWT.JWTService;
 
 import java.io.IOException;
 import java.util.List;
@@ -23,7 +24,6 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.security.oauth2.jwt.JwtDecoder;
 
 
 public class JwtAuthenticationFilter implements Filter { 
@@ -32,7 +32,7 @@ public class JwtAuthenticationFilter implements Filter {
 	private UserService userService;
 	
 	@Autowired
-    private JwtDecoder jwtDecoder;
+    private JWTService jwtService;
 	
 	private static final Logger logger = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
 	
@@ -108,7 +108,7 @@ public class JwtAuthenticationFilter implements Filter {
 	 * @return a UserDTO object with user details.
 	 */
 	public UserDTO getUserFromToken(String token) {
-		Jwt jwt = this.getJwtFromToken(token);
+		Jwt jwt = jwtService.getJwtFromToken(token);
 
 		long userId = jwt.getClaim("id");
 
@@ -129,14 +129,5 @@ public class JwtAuthenticationFilter implements Filter {
 		 return new UsernamePasswordAuthenticationToken(user, null, authorities);
 	 }
 	 
-	 /**
-	  * Decodes the JWT token to extract its claims.
-	  * 
-	  * @param token the JWT token to be decoded.
-	  * @return a Jwt object representing the decoded token.
-	  */
-	 public Jwt getJwtFromToken(String token) {
-		return jwtDecoder.decode(token);  
-	 }
    
 }

@@ -65,7 +65,7 @@ public class JWTService {
 	
 	public String validateTokenAndGetEmail(String token) {
         try {
-            Jwt jwt = jwtDecoder.decode(token);
+            Jwt jwt = this.getJwtFromToken(token);
 
             String email = jwt.getSubject();
 
@@ -76,5 +76,15 @@ public class JWTService {
         }
     }
 
+	
+	/**
+	  * Decodes the JWT token to extract its claims.
+	  * 
+	  * @param token the JWT token to be decoded.
+	  * @return a Jwt object representing the decoded token.
+	  */
+	 public Jwt getJwtFromToken(String token) {
+		return jwtDecoder.decode(token);  
+	 }
 	
 }
