@@ -92,6 +92,8 @@ public class QuizzPlayService {
     	String currentUserNickname = SecurityUtils.getCurrentUser().getNickname();
     	logger.info("Entering method handleUserAnswers: User '{}'", currentUserNickname);
     	
+    	// GETTERS /////
+    	
         Quizz quizz = quizzRepository.findById(quizzId)
 		        .orElseThrow(() -> {
 		        	logger.warn("Method handleUserAnswers: Quizz with ID {} not found. Current User nickname: {}",
@@ -102,13 +104,32 @@ public class QuizzPlayService {
         User currentUser = userRepository.findById(SecurityUtils.getCurrentUser().getIdUser())
                 .orElseThrow(() -> new NotFoundException("User not found"));
         
+        
+        // CHECK IF ANSWERS BELONG TO THE QUIZZ AND IF ALL QUESTIONS HAS BEEN ANSWERED /////
+        
         // Get quizz's questions
-        Set<QuizzQuestion> quizQuestions = quizz.getQuizzQuestions();
+        Set<QuizzQuestion> quizzQuestions = quizz.getQuizzQuestions();
         
         // Map each UserAnswerCreateDTO to a QuizzAnswer
         Map<Integer, QuizzAnswer> quizzAnswerMap = userAnswerCreateDTOs.stream()
-                .map(dto -> quizzAnswerRepository.findById(dto.getAnswerId())
-                        .orElseThrow(() -> new NotFoundException("Answer not found")))
+                .map(dto -> {
+                    QuizzAnswer answer = quizzAnswerRepository.findById(dto.getAnswerId())
+                            .orElseThrow(() -> {
+                                logger.warn("Method handleUserAnswers: Answer with ID {} not found. Current User nickname: {}",
+                                        quizzId, currentUserNickname);
+                                return new NotFoundException("Answer not found");
+                            });
+
+                    // Verify if the answer belongs to the current quizz's questions
+                    QuizzQuestion question = answer.getQuestion();
+                    if (!quizzQuestions.contains(question)) {
+                        logger.warn("Method handleUserAnswers: The answer (id: {}) does not belong to the quizz played (id: {}). Current User nickname: {}",
+                                answer.getIdAnswer(), quizzId, currentUserNickname);
+                        throw new IllegalArgumentException("The answer (id:" + answer.getIdAnswer() + ") does not belong to the quizz played");
+                    }
+
+                    return answer;
+                })
                 .collect(Collectors.toMap(QuizzAnswer::getIdAnswer, answer -> answer));
         
         // Group answers by their corresponding question
@@ -116,12 +137,14 @@ public class QuizzPlayService {
                 .collect(Collectors.groupingBy(QuizzAnswer::getQuestion));
         
         // Check if all questions are answered
-        if (answersByQuestion.size() != quizQuestions.size()) {
+        if (answersByQuestion.size() != quizzQuestions.size()) {
         	logger.warn("Method handleUserAnswers: Not all questions have been answered. Current User nickname: {}",
         			quizzId, currentUserNickname);
             throw new IllegalArgumentException("Not all questions have been answered.");
         }
 
+        // CALCULATE SCORE /////
+        
         // Calculate the number of correct answers
         long correctAnswerCount = answersByQuestion.values().stream()
                 .flatMap(List::stream)
@@ -130,6 +153,9 @@ public class QuizzPlayService {
 
         // Calculate the score
         double score = (double) correctAnswerCount / userAnswerCreateDTOs.size() * 100.0;
+        
+        
+        // SAVE THE QUIZZ PLAY /////
 
         // Build QuizzPlay
         QuizzPlay quizzPlayTemp = QuizzPlay.builder()
@@ -144,18 +170,13 @@ public class QuizzPlayService {
         logger.info("Method handleUserAnswers: Quizz play for quizz with ID {} created sucessfully. Current User nickname: {}",
         		quizzId, currentUserNickname);
         
+        
+        // SAVE USER ANSWERS OF THE QUIZZ PLAY /////
+        
         // Bind answers to QuizzPlay
         List<UserAnswer> userAnswers = userAnswerCreateDTOs.stream()
                 .map(dto -> {
                 	QuizzAnswer answer = quizzAnswerMap.get(dto.getAnswerId());
-                	
-                	// If the answer doesn't belong to the Quizz
-                	QuizzQuestion question = answer.getQuestion();
-                    if (!quizz.getQuizzQuestions().contains(question)) {
-                    	logger.warn("Method handleUserAnswers: The answer (id: "+ answer.getIdAnswer() + ") does not belong to the quizz played (id: "+quizzId+"). Current User nickname: {}",
-                    			quizzId, currentUserNickname);
-                        throw new IllegalArgumentException("The answer (id:" + answer.getIdAnswer() + ") does not belong to the quizz played");
-                    }
                     
                     return UserAnswer.builder()
                             .quizzPlay(quizzPlay)

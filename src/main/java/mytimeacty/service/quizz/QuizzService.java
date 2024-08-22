@@ -156,6 +156,8 @@ public class QuizzService {
         return quizzDTO;
     }
     
+    
+    
     /**
      * Retrieves a paginated list of quizzes based on various filters.
      * Filters include title, creator nickname, category, and level. 

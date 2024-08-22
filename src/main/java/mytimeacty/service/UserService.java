@@ -77,7 +77,6 @@ public class UserService {
                         .userRole("user")
                         .userPreviousRole("user")
                         .isActivated(false)
-                        .actualConnexionToken(null)
                         .build();
         
         User savedUser = userRepository.save(user);

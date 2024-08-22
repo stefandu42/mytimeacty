@@ -69,7 +69,15 @@ public class AuthController {
 	    return ResponseEntity.status(HttpStatus.OK).body("User sucessfully registered, check your emails to activate your account");
     }
 	
-	
+	/**
+	 * Verifies a user's account using a JWT token.
+	 * 
+	 * This endpoint validates the provided JWT token, extracts the user's email from the token, 
+	 * and activates the user account associated with that email.
+	 * 
+	 * @param token the JWT token used to verify the user's account.
+	 * @return a ResponseEntity containing a success message indicating the account has been successfully verified.
+	 */
 	@PutMapping("/verify/{token}")
 	public ResponseEntity<String> verifyUser(@PathVariable("token") String token) {
         String email = jwtService.validateTokenAndGetEmail(token);

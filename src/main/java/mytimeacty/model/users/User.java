@@ -45,9 +45,6 @@ public class User {
     @Column(name = "is_activated", nullable = false)
     private Boolean isActivated;
     
-    @Column(name = "actual_connexion_token", nullable = false)
-    private String actualConnexionToken;
-    
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant  createdAt;
 
