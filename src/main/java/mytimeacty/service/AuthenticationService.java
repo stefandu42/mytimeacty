@@ -104,13 +104,13 @@ public class AuthenticationService {
 		// Create a new user and save it
 		UserDTO userSaved = userService.createUser(createDTO);
 		
-		logger.info("Method authenticateUser: User with nickname {} registered sucessfully.",
+		logger.info("Method registerUser: User with nickname {} registered sucessfully.",
 				createDTO.getNickname());
 		
 		// Generate and return a JWT token for the newly registered user
-		String token = jwtService.generateToken(userSaved);
+		String token = jwtService.generateVerificationToken(userSaved);
 		
-		logger.info("Method authenticateUser: Token for user with nickname {} created sucessfully.",
+		logger.info("Method registerUser: Token for user with nickname {} created sucessfully.",
 				createDTO.getNickname());
 
 	    // Send email to verify
@@ -119,5 +119,14 @@ public class AuthenticationService {
 	    });
 		
 		return token;
+	}
+
+	public void activateUser(String email) {
+		logger.info("Entering method activateUser: User '{}'", email);
+		
+		userService.activateUser(email);
+		
+		logger.info("Method activateUser: User '{}' marked as activated sucessfully", email);
+		
 	}
 }

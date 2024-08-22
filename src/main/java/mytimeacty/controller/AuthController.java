@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -16,6 +17,7 @@ import mytimeacty.exception.UserNotFoundException;
 import mytimeacty.model.auth.LoginDTO;
 import mytimeacty.model.users.dto.creation.UserCreateDTO;
 import mytimeacty.service.AuthenticationService;
+import mytimeacty.service.JWT.JWTService;
 
 @RestController
 @RequestMapping("/auth")
@@ -23,6 +25,9 @@ public class AuthController {
 	
 	@Autowired
 	private AuthenticationService authenticationService;
+	
+	@Autowired
+	private JWTService jwtService;
 	
 	private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
 	
@@ -62,4 +67,17 @@ public class AuthController {
 		logger.info("User with nickname '{}'sucessfully registered and connected with token {}", userCreateDTO.getNickname(), token);
 	    return ResponseEntity.status(HttpStatus.OK).body(token);
     }
+	
+	
+	@PostMapping("/verify/{token}")
+	public ResponseEntity<String> verifyUser(@PathVariable("token") String token) {
+        String email = jwtService.validateTokenAndGetEmail(token);
+        
+        authenticationService.activateUser(email);
+        
+        logger.info("User with email '{}' successfully verified.", email);
+        return ResponseEntity.status(HttpStatus.OK).body("Account successfully verified");
+ 
+	}
+
 }

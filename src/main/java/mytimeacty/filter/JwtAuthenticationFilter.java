@@ -10,7 +10,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import mytimeacty.model.users.dto.UserDTO;
 import mytimeacty.model.users.enums.UserRole;
 import mytimeacty.service.UserService;
-import mytimeacty.utils.SecurityUtils;
 
 import java.io.IOException;
 import java.util.List;
@@ -25,7 +24,6 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
-import org.springframework.security.oauth2.jwt.JwtException;
 
 
 public class JwtAuthenticationFilter implements Filter { 
@@ -65,9 +63,9 @@ public class JwtAuthenticationFilter implements Filter {
         
         String token = resolveToken(request);
         
-        if(token == null || !this.validateToken(token)){
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid Token");
-            logger.warn("The '{}' token is invalid", token);
+        if(token == null){
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Missing Token");
+            logger.warn("Missing Token", token);
             return;
         }
         
@@ -129,21 +127,6 @@ public class JwtAuthenticationFilter implements Filter {
 
 		 List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(role.toUpperCase()));
 		 return new UsernamePasswordAuthenticationToken(user, null, authorities);
-	 }
-	 
-	 /**
-	  * Validates the JWT token by decoding it.
-	  * 
-	  * @param token the JWT token to be validated.
-	  * @return true if the token is valid, false otherwise.
-	  */
-	 public boolean validateToken(String token) {
-		 try {
-			 jwtDecoder.decode(token);
-			 return true;
-		 } catch (JwtException | IllegalArgumentException e) {
-			 return false;
-		 }
 	 }
 	 
 	 /**

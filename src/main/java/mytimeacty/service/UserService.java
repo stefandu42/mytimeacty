@@ -394,5 +394,21 @@ public class UserService {
         user.setUserRole(UserRole.fromString(newRole).getRole());
         userRepository.save(user);
     }
+    
+    public void activateUser(String email) {
+    	logger.info("Entering method activateUser: User '{}'", email);
+    	
+        User user = userRepository.findByEmailIgnoreCase(email)
+                .orElseThrow(() -> {
+                	logger.warn("Method activateUser: User not found with email: {}", email);
+                	return new UserNotFoundException("User not found with email: " + email);
+                });
+
+        user.setIsActivated(true);
+
+        userRepository.save(user);
+        
+        logger.info("Method activateUser: User '{}' marked as activated sucessfully", email);
+    }
 
 }
