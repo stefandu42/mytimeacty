@@ -403,6 +403,12 @@ public class UserService {
         userRepository.save(user);
     }
     
+    /**
+     * Activates a user by their email.
+     *
+     * @param email The email of the user to activate.
+     * @throws UserNotFoundException if no user with the given email is found.
+     */
     @Transactional
     public void activateUser(String email) {
     	logger.info("Entering method activateUser: User '{}'", email);

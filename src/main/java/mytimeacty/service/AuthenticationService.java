@@ -128,6 +128,11 @@ public class AuthenticationService {
 	    });
 	}
 
+	/**
+	 * Activates the user account associated with the given email.
+	 * 
+	 * @param email The email of the user to activate.
+	 */
 	@Transactional
 	public void activateUser(String email) {
 		logger.info("Entering method activateUser: User '{}'", email);

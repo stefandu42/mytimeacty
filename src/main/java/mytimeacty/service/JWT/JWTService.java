@@ -52,6 +52,13 @@ public class JWTService {
 		return this.jwtEncoder.encode(jwtEncoderParameters).getTokenValue();
 	}
 	
+	/**
+	 * Generates a verification token for the given user.
+	 * The token is a JWT that contains the user's email and is valid for 1 hour.
+	 *
+	 * @param user The user for whom the verification token is generated.
+	 * @return The generated verification token as a String.
+	 */
 	public String generateVerificationToken(UserDTO user) {
 		Instant now = Instant.now();
  		JwtClaimsSet claims = JwtClaimsSet.builder()
@@ -63,6 +70,14 @@ public class JWTService {
 		return this.jwtEncoder.encode(jwtEncoderParameters).getTokenValue();
 	}
 	
+	/**
+	 * Validates the provided token and extracts the email if the token is valid.
+	 * Throws an exception if the token is invalid or expired.
+	 *
+	 * @param token The JWT token to validate.
+	 * @return The email extracted from the valid token.
+	 * @throws UnauthoriedException if the token is invalid or expired.
+	 */
 	public String validateTokenAndGetEmail(String token) {
         try {
             Jwt jwt = this.getJwtFromToken(token);
