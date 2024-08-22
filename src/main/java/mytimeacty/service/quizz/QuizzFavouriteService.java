@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import mytimeacty.exception.NotFoundException;
 import mytimeacty.exception.UserNotFoundException;
@@ -42,6 +43,7 @@ public class QuizzFavouriteService {
      * @throws NotFoundException if the quizz is not found
      * @throws UserNotFoundException if the user is not found
      */
+    @Transactional
     public void favouriteQuizz(int userId, int quizzId) {
     	String currentUserNickname= SecurityUtils.getCurrentUser().getNickname();
     	logger.info("Entering method favouriteQuizz: User '{}'", currentUserNickname);
@@ -74,6 +76,7 @@ public class QuizzFavouriteService {
      * @param userId the ID of the user who wants to unfavourite the quizz
      * @param quizzId the ID of the quizz to be unfavourited
      */
+    @Transactional
     public void unfavouriteQuizz(int userId, int quizzId) {
     	String currentUserNickname = SecurityUtils.getCurrentUser().getNickname();
     	logger.info("Entering method unfavouriteQuizz: User '{}'", currentUserNickname);

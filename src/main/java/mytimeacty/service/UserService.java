@@ -11,6 +11,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import mytimeacty.exception.ForbiddenException;
 import mytimeacty.exception.NotFoundException;
@@ -56,6 +57,7 @@ public class UserService {
      * @return the created UserDTO
      * @throws UserAlreadyExistsException if the email or nickname is already in use
      */
+    @Transactional
     public UserDTO createUser(UserCreateDTO userCreateDTO) {
         if (userRepository.findByEmailIgnoreCase(userCreateDTO.getEmail()).isPresent()) {
         	logger.warn("Method createUser: Email '{}' already in use)", userCreateDTO.getEmail());
@@ -75,6 +77,7 @@ public class UserService {
                         .userRole("user")
                         .userPreviousRole("user")
                         .isActivated(false)
+                        .actualConnexionToken(null)
                         .build();
         
         User savedUser = userRepository.save(user);
@@ -202,6 +205,7 @@ public class UserService {
      * @param userId the ID of the user to ban
      * @throws ForbiddenException if the current user does not have permission to ban the target user
      */
+    @Transactional
     public void banUser(int userId) {
     	String currentUserNickname = SecurityUtils.getCurrentUser().getNickname();
     	logger.info("Entering method banUser: User '{}'", currentUserNickname);
@@ -222,6 +226,7 @@ public class UserService {
      * @param userId the ID of the user to unban
      * @throws ForbiddenException if the current user does not have permission to unban the target user
      */
+    @Transactional
 	public void unbanUser(int userId) {
 		String currentUserNickname = SecurityUtils.getCurrentUser().getNickname();
     	logger.info("Entering method unbanUser: User '{}'", currentUserNickname);
@@ -301,6 +306,7 @@ public class UserService {
 	 * @param userId The ID of the user to be promoted to admin.
 	 * @throws ForbiddenException If the target user is not eligible for promotion.
 	 */
+	@Transactional
 	public void promoteUserToAdmin(int userId) {
 		String currentUserNickname = SecurityUtils.getCurrentUser().getNickname();
     	logger.info("Entering method promoteUserToAdmin: User '{}'", currentUserNickname);
@@ -324,6 +330,7 @@ public class UserService {
 	 * @param userId The ID of the admin to be promoted to chief.
 	 * @throws ForbiddenException If the target admin is not eligible for promotion.
 	 */
+	@Transactional
 	public void promoteAdminToChief(int userId) {
 		String currentUserNickname = SecurityUtils.getCurrentUser().getNickname();
     	logger.info("Entering method promoteAdminToChief: User '{}'", currentUserNickname);
@@ -347,6 +354,7 @@ public class UserService {
 	 * @param userId The ID of the admin to be demoted to user.
 	 * @throws ForbiddenException If the target admin is not eligible for demotion.
 	 */
+	@Transactional
 	public void demoteAdminToUser(int userId) {
 		String currentUserNickname = SecurityUtils.getCurrentUser().getNickname();
     	logger.info("Entering method demoteAdminToUser: User '{}'", currentUserNickname);
@@ -396,6 +404,7 @@ public class UserService {
         userRepository.save(user);
     }
     
+    @Transactional
     public void activateUser(String email) {
     	logger.info("Entering method activateUser: User '{}'", email);
     	

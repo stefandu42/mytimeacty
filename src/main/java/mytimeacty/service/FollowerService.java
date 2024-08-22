@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import mytimeacty.exception.ForbiddenException;
 import mytimeacty.exception.UserNotFoundException;
@@ -15,6 +16,7 @@ import mytimeacty.model.followers.FollowerId;
 import mytimeacty.model.followers.dto.FollowerDTO;
 import mytimeacty.model.followers.dto.FollowingDTO;
 import mytimeacty.model.users.User;
+import mytimeacty.model.users.dto.UserDTO;
 import mytimeacty.repository.FollowerRepository;
 import mytimeacty.repository.UserRepository;
 import mytimeacty.utils.PaginationUtils;
@@ -40,11 +42,13 @@ public class FollowerService {
      * @throws UserNotFoundException if either the follower or the followed user is not found
      * @throws ForbiddenException if the follower is the followed user
      */
+    @Transactional
     public FollowerDTO followUser(int idFollower, int idUserFollowed) {
-    	String currentUserNickname = SecurityUtils.getCurrentUser().getNickname();
+    	UserDTO currentUser = SecurityUtils.getCurrentUser();
+    	String currentUserNickname = currentUser.getNickname();
     	logger.info("Entering method followUser: User '{}'", currentUserNickname);
     	
-    	if (SecurityUtils.getCurrentUser().getIdUser().equals(idUserFollowed)) {
+    	if (currentUser.getIdUser().equals(idUserFollowed)) {
     		logger.warn("Method followUser: You cannot follow yourself. Current User nickname: {}",
         			currentUserNickname);
             throw new ForbiddenException("You cannot follow yourself");
@@ -85,6 +89,7 @@ public class FollowerService {
      * @param idUserFollowed the ID of the user being unfollowed
      * @throws UserNotFoundException if the follower or the followed user does not exist
      */
+    @Transactional
     public void unfollowUser(int idFollower, int idUserFollowed) {
     	String currentUserNickname = SecurityUtils.getCurrentUser().getNickname();
     	logger.info("Entering method unfollowUser: User '{}'", currentUserNickname);

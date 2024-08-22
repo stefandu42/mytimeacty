@@ -27,13 +27,13 @@ public class User {
     @Column(name = "id_user")
     private Integer idUser;
     
-    @Column(name = "email", nullable = false, unique = true)
+    @Column(name = "email", nullable = false, unique = true, length = 100)
     private String email;
     
-    @Column(name = "nickname", nullable = false, unique = true)
+    @Column(name = "nickname", nullable = false, unique = true, length = 20)
     private String nickname;
     
-    @Column(name = "pwd", nullable = false)
+    @Column(name = "pwd", nullable = false, length = 60)
     private String password;
     
     @Column(name = "user_role", nullable = false)
@@ -44,6 +44,9 @@ public class User {
     
     @Column(name = "is_activated", nullable = false)
     private Boolean isActivated;
+    
+    @Column(name = "actual_connexion_token", nullable = false)
+    private String actualConnexionToken;
     
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant  createdAt;

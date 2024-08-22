@@ -61,6 +61,7 @@ public class QuizzService {
      * @param quizzId the ID of the quizz to be hidden
      * @throws NotFoundException if the quizz is not found
      */
+    @Transactional
     public void markQuizzAsHidden(int quizzId) {
     	String currentUserNickname = SecurityUtils.getCurrentUser().getNickname();
     	logger.info("Entering method markQuizzAsHidden: User '{}'", currentUserNickname);

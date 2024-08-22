@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import mytimeacty.exception.NotFoundException;
 import mytimeacty.exception.UserNotFoundException;
@@ -41,6 +42,7 @@ public class QuizzLikeService {
      * @throws NotFoundException if the quizz is not found
      * @throws UserNotFoundException if the user is not found
      */
+    @Transactional
     public void likeQuizz(int userId, int quizzId) {
     	String currentUserNickname = SecurityUtils.getCurrentUser().getNickname();
     	logger.info("Entering method likeQuizz: User '{}'", currentUserNickname);
@@ -75,6 +77,7 @@ public class QuizzLikeService {
      * @param userId the ID of the user who wants to unlike the quizz
      * @param quizzId the ID of the quizz to be unliked
      */
+    @Transactional
     public void unlikeQuizz(int userId, int quizzId) {
     	String currentUserNickname = SecurityUtils.getCurrentUser().getNickname();
     	logger.info("Entering method unlikeQuizz: User '{}'", currentUserNickname);

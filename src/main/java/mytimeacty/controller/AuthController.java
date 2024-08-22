@@ -64,9 +64,9 @@ public class AuthController {
      */
 	@PostMapping("/register")
     public ResponseEntity<String> createUserAndGetToken(@Valid @RequestBody UserCreateDTO userCreateDTO) {
-		String token = authenticationService.registerUser(userCreateDTO);
-		logger.info("User with nickname '{}'sucessfully registered and connected with token {}", userCreateDTO.getNickname(), token);
-	    return ResponseEntity.status(HttpStatus.OK).body(token);
+		authenticationService.registerUser(userCreateDTO);
+		logger.info("User with nickname '{}'sucessfully registered, check your emails to activate your account", userCreateDTO.getNickname());
+	    return ResponseEntity.status(HttpStatus.OK).body("User sucessfully registered, check your emails to activate your account");
     }
 	
 	

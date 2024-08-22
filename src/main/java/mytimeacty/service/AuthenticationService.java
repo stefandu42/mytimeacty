@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import mytimeacty.exception.ForbiddenException;
 import mytimeacty.exception.UserNotFoundException;
@@ -72,7 +73,7 @@ public class AuthenticationService {
 			throw new ForbiddenException("You are banned");
 		}
 		
-		// Check if the user is banned
+		// Check if the user is activated
 		if(!user.getIsActivated()) {
 			logger.warn("Method authenticateUser: User not activated with nickname '{}' tried to login",
         			user.getNickname());
@@ -101,7 +102,8 @@ public class AuthenticationService {
 	 * @param createDTO contains the user details for registration
 	 * @return a JWT token for the newly registered user
 	 */
-	public String registerUser(UserCreateDTO createDTO) {
+	@Transactional
+	public void registerUser(UserCreateDTO createDTO) {
 		logger.info("Entering method registerUser: Nickname '{}' and email '{}'", createDTO.getNickname(), createDTO.getEmail());
 		
 		// Trim the email and nickname to remove leading and trailing whitespace
@@ -117,17 +119,16 @@ public class AuthenticationService {
 		// Generate and return a JWT token for the newly registered user
 		String token = jwtService.generateVerificationToken(userSaved);
 		
-		logger.info("Method registerUser: Token for user with nickname {} created sucessfully.",
-				createDTO.getNickname());
+		logger.info("Method registerUser: Token for user with nickname {} created sucessfully. Token : {}",
+				createDTO.getNickname(), token);
 
 	    // Send email to verify
 	    CompletableFuture.runAsync(() -> {
 	    	mailService.sendVerificationEmail(userSaved.getEmail(), token);
 	    });
-		
-		return token;
 	}
 
+	@Transactional
 	public void activateUser(String email) {
 		logger.info("Entering method activateUser: User '{}'", email);
 		
