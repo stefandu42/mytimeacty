@@ -34,6 +34,6 @@ public interface UserRepository extends JpaRepository<User, Integer> {
      * @param pageable the Pageable object containing pagination and sorting information.
      * @return a List of User entities whose nicknames contain the specified string.
      */
-	List<User> findByNicknameContainingIgnoreCase(String nickname, Pageable pageable);
+    List<User> findByNicknameContainingIgnoreCaseAndUserRoleNotAndIsActivatedTrue(String nickname, String role, Pageable pageable);
 
 }

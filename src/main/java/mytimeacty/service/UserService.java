@@ -100,7 +100,8 @@ public class UserService {
     	logger.info("Entering method getFilteredUsers: User '{}'", currentUserDTO.getNickname());
     	
         Pageable pageable = PaginationUtils.createPageableSortByAsc(page, size, "nickname");
-        List<User> users = userRepository.findByNicknameContainingIgnoreCase(nickname.trim(), pageable);
+        List<User> users = userRepository.findByNicknameContainingIgnoreCaseAndUserRoleNotAndIsActivatedTrue(nickname.trim(), 
+        		UserRole.BANNED.getRole(), pageable);
         
         User currentUser = this.getUserByIdData(currentUserDTO.getIdUser());
         

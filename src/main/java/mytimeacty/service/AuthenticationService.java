@@ -71,6 +71,13 @@ public class AuthenticationService {
         			user.getNickname());
 			throw new ForbiddenException("You are banned");
 		}
+		
+		// Check if the user is banned
+		if(!user.getIsActivated()) {
+			logger.warn("Method authenticateUser: User not activated with nickname '{}' tried to login",
+        			user.getNickname());
+			throw new ForbiddenException("You must activate your account");
+		}
 
 		// Validate the provided password
         if (!bcryptPasswordEncoder.matches(loginDTO.getPassword(), user.getPassword())) {
