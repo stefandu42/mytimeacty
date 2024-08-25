@@ -60,11 +60,18 @@ public class SecurityConfig {
 	            .build();		
 	}
 	
+	/**
+	 * Configures the CORS (Cross-Origin Resource Sharing) settings for HTTP requests.
+	 * 
+	 * Sets allowed origins, methods, headers, and credentials for CORS requests.
+	 * 
+	 * @return a CorsConfigurationSource that defines the CORS policy for the application.
+	 */
 	@Bean
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(List.of(corsOriginAllowedName));
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
