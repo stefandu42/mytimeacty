@@ -18,12 +18,15 @@ public class MailService {
     @Value("${spring.profiles.active}")
     private String activeProfile;
     
+    @Value("${cors.origin.allowed.name}")
+    private String corsOriginAllowedName;
+    
     private static final Logger logger = LoggerFactory.getLogger(MailService.class);
     
     public void sendVerificationEmail(String toEmail, String token) {
     	if ("prod".equals(activeProfile)) {
 	        try {
-	            String verificationLink = "https://www.mytimeacty.com/verify?token=" + token;
+	            String verificationLink = corsOriginAllowedName +"/verify/" + token;
 	            
 	            SimpleMailMessage message = new SimpleMailMessage();
 	            message.setTo(toEmail);
