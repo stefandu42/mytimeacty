@@ -1,10 +1,13 @@
 package mytimeacty.controller;
 
+import java.util.Locale;
+
 import javax.naming.AuthenticationException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -30,6 +33,9 @@ public class AuthController {
 	@Autowired
 	private JWTService jwtService;
 	
+	@Autowired
+    private MessageSource messageSource;
+	
 	private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
 	
 	/**
@@ -43,14 +49,15 @@ public class AuthController {
      *         Returns a 401 Unauthorized status with an error message if the login fails.
      */
 	@PostMapping("/login")
-	public ResponseEntity<String> getToken(@Valid @RequestBody LoginDTO loginDTO) {
+	public ResponseEntity<String> getToken(@Valid @RequestBody LoginDTO loginDTO, Locale locale) {
 		try {
             String token = authenticationService.authenticateUser(loginDTO);
             logger.info("User with nickname/email '{}' sucessfully connected with token '{}'", loginDTO.getNicknameOrEmail(), token);
             return ResponseEntity.status(HttpStatus.OK).body(token);
         } catch (UserNotFoundException | AuthenticationException e) {
+        	String errorMessage = messageSource.getMessage("error.login.failed", null, locale);
         	logger.warn("Unauthorized: Invalid nickname/email or wrong password for user '{}'", loginDTO.getNicknameOrEmail());
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid nickname/email or wrong password");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorMessage);
         }
 	}
 

@@ -57,6 +57,7 @@ public class JwtAuthenticationFilter implements Filter {
         String path = request.getRequestURI();
 
         if (path.startsWith("/auth")) {
+        	System.out.println(request.getHeader("Accept-Language"));
         	filterChain.doFilter(servletRequest, servletResponse);
         	return;
         }
