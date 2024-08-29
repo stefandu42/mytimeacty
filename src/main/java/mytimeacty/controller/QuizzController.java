@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 import jakarta.validation.Valid;
 import mytimeacty.annotation.RolesAllowed;
 import mytimeacty.model.quizzes.dto.QuizzDTO;
+import mytimeacty.model.quizzes.dto.QuizzWithLikeAndFavouriteDTO;
 import mytimeacty.model.quizzes.dto.creation.QuizzCreateDTO;
 import mytimeacty.service.quizz.QuizzFavouriteService;
 import mytimeacty.service.quizz.QuizzLikeService;
@@ -63,10 +64,10 @@ public class QuizzController {
      * @param nickname an optional filter by user nickname.
      * @param categoryLabel an optional filter by quizz category.
      * @param levelLabel an optional filter by quizz difficulty level.
-     * @return a ResponseEntity containing a Page of QuizzDTO objects.
+     * @return a ResponseEntity containing a Page of QuizzWithLikeAndFavouriteDTO objects.
      */
 	@GetMapping
-    public ResponseEntity<Page<QuizzDTO>> getAllQuizzes(
+    public ResponseEntity<Page<QuizzWithLikeAndFavouriteDTO>> getAllQuizzes(
         @RequestParam(defaultValue = "0") int page, 
         @RequestParam(defaultValue = "15") int size,
         @RequestParam(required = false) String title,
@@ -74,7 +75,7 @@ public class QuizzController {
         @RequestParam(required = false) String categoryLabel,
         @RequestParam(required = false) String levelLabel) {
         
-        Page<QuizzDTO> quizzes = quizzService.getQuizzes(page, size, title, nickname, categoryLabel, levelLabel);
+        Page<QuizzWithLikeAndFavouriteDTO> quizzes = quizzService.getQuizzes(page, size, title, nickname, categoryLabel, levelLabel);
         
         logger.info("User with the nickname '{}' has successfully retrieved all quizzes with params page '{}', size '{}', "
         		+ "title '{}', nickname '{}', category label '{}' and level label '{}'", 

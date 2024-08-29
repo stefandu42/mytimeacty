@@ -3,6 +3,7 @@ package mytimeacty.repository.quizz;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import mytimeacty.model.quizzes.Quizz;
 import mytimeacty.model.quizzes.QuizzLike;
 import mytimeacty.model.quizzes.ids.QuizzLikeId;
 import mytimeacty.model.users.User;
@@ -17,4 +18,6 @@ public interface QuizzLikeRepository extends JpaRepository<QuizzLike, QuizzLikeI
 	 * @return the number of occurrences associated with the specified user.
 	 */
 	long countByUser(User user);
+	
+	boolean existsByQuizzAndUser(Quizz quizz, User user);
 }

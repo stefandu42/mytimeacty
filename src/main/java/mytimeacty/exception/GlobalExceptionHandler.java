@@ -2,6 +2,8 @@ package mytimeacty.exception;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -12,10 +14,15 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
+	
+	@Autowired
+    private MessageSource messageSource;
+	
 	private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 	
 	@ExceptionHandler(HttpMessageNotReadableException.class)
@@ -43,9 +50,10 @@ public class GlobalExceptionHandler {
     
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public ResponseEntity<String> handleException(Exception ex) {
+    public ResponseEntity<String> handleException(Exception ex, Locale locale) {
     	logger.error("Internal error : \n{}", ex.getMessage());
-    	return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An unexpected error occurred");
+    	String errorMessage = messageSource.getMessage("error.general", null, locale);
+    	return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorMessage);
     }
     
     @ExceptionHandler(UserNotFoundException.class)

@@ -18,14 +18,18 @@ import mytimeacty.model.quizzes.QuizzCategory;
 import mytimeacty.model.quizzes.QuizzLevel;
 import mytimeacty.model.quizzes.QuizzQuestion;
 import mytimeacty.model.quizzes.dto.QuizzDTO;
+import mytimeacty.model.quizzes.dto.QuizzWithLikeAndFavouriteDTO;
 import mytimeacty.model.quizzes.dto.creation.AnswerCreateDTO;
 import mytimeacty.model.quizzes.dto.creation.QuestionCreateDTO;
 import mytimeacty.model.quizzes.dto.creation.QuizzCreateDTO;
 import mytimeacty.model.users.User;
+import mytimeacty.model.users.dto.UserDTO;
 import mytimeacty.repository.UserRepository;
 import mytimeacty.repository.quizz.QuizzAnswerRepository;
 import mytimeacty.repository.quizz.QuizzCategoryRepository;
+import mytimeacty.repository.quizz.QuizzFavouriteRepository;
 import mytimeacty.repository.quizz.QuizzLevelRepository;
+import mytimeacty.repository.quizz.QuizzLikeRepository;
 import mytimeacty.repository.quizz.QuizzQuestionRepository;
 import mytimeacty.repository.quizz.QuizzRepository;
 import mytimeacty.specification.QuizzSpecifications;
@@ -49,6 +53,12 @@ public class QuizzService {
 
     @Autowired
     private QuizzLevelRepository quizzLevelRepository;
+    
+    @Autowired
+    private QuizzLikeRepository quizzLikeRepository;
+    
+    @Autowired
+    private QuizzFavouriteRepository quizzFavouriteRepository;
 
     @Autowired
     private QuizzCategoryRepository quizzCategoryRepository;
@@ -171,9 +181,9 @@ public class QuizzService {
      * @param levelLabel the level label filter (optional)
      * @return a page of `QuizzDTO` objects
      */
-    public Page<QuizzDTO> getQuizzes(int page, int size, String title, String nickname, String categoryLabel, String levelLabel) {
-    	String currentUserNickname = SecurityUtils.getCurrentUser().getNickname();
-    	logger.info("Entering method getQuizzes: User '{}'", currentUserNickname);
+    public Page<QuizzWithLikeAndFavouriteDTO> getQuizzes(int page, int size, String title, String nickname, String categoryLabel, String levelLabel) {
+    	UserDTO currentUserDTO = SecurityUtils.getCurrentUser();
+    	logger.info("Entering method getQuizzes: User '{}'", currentUserDTO.getNickname());
     	
     	Pageable pageable = PaginationUtils.createPageableSortByDesc(page, size, "createdAt");
         
@@ -185,10 +195,22 @@ public class QuizzService {
         
         Page<Quizz> quizzes = quizzRepository.findAll(spec, pageable);
         
-        Page<QuizzDTO> pageQuizzDTO = quizzes.map(QuizzMapper::toDTO);
+        User currentUser = userRepository.findById(SecurityUtils.getCurrentUser().getIdUser())
+		        .orElseThrow(() -> {
+		        	logger.warn("Method getQuizzes: User with ID {} not found. Current User nickname: {}",
+		        			SecurityUtils.getCurrentUser().getIdUser(), currentUserDTO.getNickname());
+		        	return new UserNotFoundException("User not found");
+		        });
+        
+        Page<QuizzWithLikeAndFavouriteDTO> pageQuizzWithLikeAndFavouriteDTO = quizzes.map(quizz -> {
+            boolean isLiked = this.quizzLikeRepository.existsByQuizzAndUser(quizz, currentUser);
+            boolean isFavourite = this.quizzFavouriteRepository.existsByQuizzAndUser(quizz, currentUser);
+
+            return QuizzMapper.toDTO(quizz, isLiked, isFavourite);
+        });
         logger.info("Method getQuizzes: Get quizzes sucessfully. Current User nickname: {}",
-        		currentUserNickname);
-        return pageQuizzDTO;
+        		currentUserDTO.getNickname());
+        return pageQuizzWithLikeAndFavouriteDTO;
     }
     
     /**
