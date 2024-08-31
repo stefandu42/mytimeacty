@@ -1,9 +1,7 @@
 package mytimeacty.mapper;
 
 import mytimeacty.model.quizzes.Quizz;
-import mytimeacty.model.quizzes.dto.QuizzCategoryDTO;
 import mytimeacty.model.quizzes.dto.QuizzDTO;
-import mytimeacty.model.quizzes.dto.QuizzLevelDTO;
 import mytimeacty.model.quizzes.dto.QuizzWithLikeAndFavouriteDTO;
 
 public class QuizzMapper {
@@ -18,18 +16,6 @@ public class QuizzMapper {
         if (quizz == null) {
             return null;
         }
-        
-        // Convert the category to QuizzCategoryDTO
-        QuizzCategoryDTO categoryDTO = QuizzCategoryDTO.builder()
-        		.idCategory(quizz.getCategory().getIdCategory())
-        		.label(quizz.getCategory().getLabel())
-        		.build();
-        
-        // Convert the level to QuizzLevelDTO
-        QuizzLevelDTO levelDTO = QuizzLevelDTO.builder()
-        		.idLevel(quizz.getLevel().getIdLevel())
-        		.label(quizz.getLevel().getLabel())
-        		.build();
 
         // Build and return the QuizzDTO
         return QuizzDTO.builder()
@@ -37,8 +23,8 @@ public class QuizzMapper {
                 .title(quizz.getTitle())
                 .creatorId(quizz.getCreator().getIdUser())
                 .creatorNickname(quizz.getCreator().getNickname())
-                .category(categoryDTO)
-                .level(levelDTO)
+                .category(QuizzCategoryMapper.toDTO(quizz.getCategory()))
+                .level(QuizzLevelMapper.toDTO(quizz.getLevel()))
                 .createdAt(quizz.getCreatedAt())
                 .build();
     }
@@ -48,26 +34,14 @@ public class QuizzMapper {
             return null;
         }
 
-        // Convert the category to QuizzCategoryDTO
-        QuizzCategoryDTO categoryDTO = QuizzCategoryDTO.builder()
-                .idCategory(quizz.getCategory().getIdCategory())
-                .label(quizz.getCategory().getLabel())
-                .build();
-        
-        // Convert the level to QuizzLevelDTO
-        QuizzLevelDTO levelDTO = QuizzLevelDTO.builder()
-                .idLevel(quizz.getLevel().getIdLevel())
-                .label(quizz.getLevel().getLabel())
-                .build();
-
         // Build and return the QuizzWithLikeAndFavouriteDTO
         return QuizzWithLikeAndFavouriteDTO.builder()
         		.idQuizz(quizz.getIdQuizz())
                 .title(quizz.getTitle())
                 .creatorId(quizz.getCreator().getIdUser())
                 .creatorNickname(quizz.getCreator().getNickname())
-                .category(categoryDTO)
-                .level(levelDTO)
+                .category(QuizzCategoryMapper.toDTO(quizz.getCategory()))
+                .level(QuizzLevelMapper.toDTO(quizz.getLevel()))
                 .createdAt(quizz.getCreatedAt())
         	    .isLiked(isLiked)
         	    .isFavourite(isFavourite)

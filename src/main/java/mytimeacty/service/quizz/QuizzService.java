@@ -187,13 +187,22 @@ public class QuizzService {
     	
     	Pageable pageable = PaginationUtils.createPageableSortByDesc(page, size, "createdAt");
         
-        Specification<Quizz> spec = applyCommonSpecifications(title, categoryLabel, levelLabel);
-        
-        if (nickname != null && spec!=null && !nickname.isBlank()) {
-            spec = spec.and(QuizzSpecifications.hasCreatorWithNickname(nickname));
+    	Specification<Quizz> titleOrNicknameSpec = Specification.where(null);
+        if (title != null && !title.isBlank()) {
+            titleOrNicknameSpec = titleOrNicknameSpec.or(QuizzSpecifications.hasTitleContaining(title));
         }
-        
-        Page<Quizz> quizzes = quizzRepository.findAll(spec, pageable);
+        if (nickname != null && !nickname.isBlank()) {
+            titleOrNicknameSpec = titleOrNicknameSpec.or(QuizzSpecifications.hasCreatorWithNickname(nickname));
+        }
+
+        Specification<Quizz> commonSpec = applyCommonSpecifications(categoryLabel, levelLabel);
+        Specification<Quizz> isVisibleSpec = QuizzSpecifications.isVisible();
+
+        Specification<Quizz> finalSpec = Specification.where(titleOrNicknameSpec)
+                .and(commonSpec != null ? commonSpec : Specification.where(null))
+                .and(isVisibleSpec);
+
+        Page<Quizz> quizzes = quizzRepository.findAll(finalSpec, pageable);
         
         User currentUser = userRepository.findById(SecurityUtils.getCurrentUser().getIdUser())
 		        .orElseThrow(() -> {
@@ -306,6 +315,20 @@ public class QuizzService {
         Specification<Quizz> isVisibleSpec = QuizzSpecifications.isVisible();
         spec = (spec == null) ? isVisibleSpec : spec.and(isVisibleSpec);
         
+        return spec;
+    }
+    
+    private Specification<Quizz> applyCommonSpecifications(String categoryLabel, String levelLabel) {
+        Specification<Quizz> spec = Specification.where(null);
+
+        if (categoryLabel != null && !categoryLabel.isBlank()) {
+            spec = spec.and(QuizzSpecifications.hasCategoryLabel(categoryLabel));
+        }
+
+        if (levelLabel != null && !levelLabel.isBlank()) {
+            spec = spec.and(QuizzSpecifications.hasLevelLabel(levelLabel));
+        }
+
         return spec;
     }
 }
