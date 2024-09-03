@@ -10,25 +10,25 @@ import mytimeacty.model.quizzes.QuizzLike;
 public class QuizzSpecifications {
 
 	/**
-     * Creates a specification to filter quizzes by category label.
+     * Creates a specification to filter quizzes by category id.
      *
-     * @param categoryLabel the category label to search for (case-insensitive)
-     * @return a specification that filters quizzes by category label
+     * @param categoryId the category id to search for
+     * @return a specification that filters quizzes by category id
      */
-	public static Specification<Quizz> hasCategoryLabel(String categoryLabel) {
+    public static Specification<Quizz> hasCategoryId(Integer categoryId) {
         return (root, query, builder) -> 
-            builder.equal(builder.lower(root.get("category").get("label")), categoryLabel.toLowerCase());
+            builder.equal(root.get("category").get("idCategory"), categoryId);
     }
 
-	/**
-     * Creates a specification to filter quizzes by level label.
+    /**
+     * Creates a specification to filter quizzes by level id.
      *
-     * @param levelLabel the level label to search for (case-insensitive)
-     * @return a specification that filters quizzes by level label
+     * @param levelId the level id to search for
+     * @return a specification that filters quizzes by level id
      */
-    public static Specification<Quizz> hasLevelLabel(String levelLabel) {
+    public static Specification<Quizz> hasLevelId(Integer levelId) {
         return (root, query, builder) -> 
-            builder.equal(builder.lower(root.get("level").get("label")), levelLabel.toLowerCase());
+            builder.equal(root.get("level").get("idLevel"), levelId);
     }
     
     /**

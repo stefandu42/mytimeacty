@@ -72,14 +72,14 @@ public class QuizzController {
         @RequestParam(defaultValue = "15") int size,
         @RequestParam(required = false) String title,
         @RequestParam(required = false) String nickname,
-        @RequestParam(required = false) String categoryLabel,
-        @RequestParam(required = false) String levelLabel) {
+        @RequestParam(required = false) Integer categoryId,
+        @RequestParam(required = false) Integer levelId) {
         
-        Page<QuizzWithLikeAndFavouriteDTO> quizzes = quizzService.getQuizzes(page, size, title, nickname, categoryLabel, levelLabel);
+        Page<QuizzWithLikeAndFavouriteDTO> quizzes = quizzService.getQuizzes(page, size, title, nickname, categoryId, levelId);
         
         logger.info("User with the nickname '{}' has successfully retrieved all quizzes with params page '{}', size '{}', "
-        		+ "title '{}', nickname '{}', category label '{}' and level label '{}'", 
-        		SecurityUtils.getCurrentUser().getNickname(), page, size, title, nickname, categoryLabel, levelLabel);
+        		+ "title '{}', nickname '{}', category '{}' and level '{}'", 
+        		SecurityUtils.getCurrentUser().getNickname(), page, size, title, nickname, categoryId, levelId);
         return ResponseEntity.status(HttpStatus.OK).body(quizzes);
     }
 	
@@ -100,14 +100,14 @@ public class QuizzController {
 	    @RequestParam(defaultValue = "0") int page, 
 	    @RequestParam(defaultValue = "15") int size,
 	    @RequestParam(required = false) String title,
-	    @RequestParam(required = false) String categoryLabel,
-	    @RequestParam(required = false) String levelLabel) {
+	    @RequestParam(required = false) Integer categoryId,
+        @RequestParam(required = false) Integer levelId) {
 	    
-	    Page<QuizzDTO> quizzes = quizzService.getLikedQuizzes(idUser, page, size, title, categoryLabel, levelLabel);
+	    Page<QuizzDTO> quizzes = quizzService.getLikedQuizzes(idUser, page, size, title, categoryId, levelId);
 	    
 	    logger.info("User with the nickname '{}' has successfully retrieved all quizzes liked by user with id '{}' using params page '{}', size '{}', "
-        		+ "title '{}', category label '{}' and level label '{}'", 
-        		SecurityUtils.getCurrentUser().getNickname(), idUser, page, size, title, categoryLabel, levelLabel);
+        		+ "title '{}', category '{}' and level '{}'", 
+        		SecurityUtils.getCurrentUser().getNickname(), idUser, page, size, title, categoryId, levelId);
 	    return ResponseEntity.status(HttpStatus.OK).body(quizzes);
 	}
 	
@@ -128,14 +128,14 @@ public class QuizzController {
 	    @RequestParam(defaultValue = "0") int page, 
 	    @RequestParam(defaultValue = "15") int size,
 	    @RequestParam(required = false) String title,
-	    @RequestParam(required = false) String categoryLabel,
-	    @RequestParam(required = false) String levelLabel) {
+	    @RequestParam(required = false) Integer categoryId,
+        @RequestParam(required = false) Integer levelId) {
 	    
-	    Page<QuizzDTO> quizzes = quizzService.getFavouriteQuizzes(idUser, page, size, title, categoryLabel, levelLabel);
+	    Page<QuizzDTO> quizzes = quizzService.getFavouriteQuizzes(idUser, page, size, title, categoryId, levelId);
 	    
 	    logger.info("User with the nickname '{}' has successfully retrieved all quizzes favourited by user with id '{}' using params page '{}', size '{}', "
-        		+ "title '{}', category label '{}' and level label '{}'", 
-        		SecurityUtils.getCurrentUser().getNickname(), idUser, page, size, title, categoryLabel, levelLabel);
+        		+ "title '{}', category '{}' and level '{}'", 
+        		SecurityUtils.getCurrentUser().getNickname(), idUser, page, size, title, categoryId, levelId);
 	    return ResponseEntity.status(HttpStatus.OK).body(quizzes);
 	}
 	

@@ -177,11 +177,11 @@ public class QuizzService {
      * @param size the size of the page
      * @param title the title filter (optional)
      * @param nickname the creator's nickname filter (optional)
-     * @param categoryLabel the category label filter (optional)
-     * @param levelLabel the level label filter (optional)
+     * @param categoryId the category filter (optional)
+     * @param levelId the level filter (optional)
      * @return a page of `QuizzDTO` objects
      */
-    public Page<QuizzWithLikeAndFavouriteDTO> getQuizzes(int page, int size, String title, String nickname, String categoryLabel, String levelLabel) {
+    public Page<QuizzWithLikeAndFavouriteDTO> getQuizzes(int page, int size, String title, String nickname, Integer categoryId, Integer levelId) {
     	UserDTO currentUserDTO = SecurityUtils.getCurrentUser();
     	logger.info("Entering method getQuizzes: User '{}'", currentUserDTO.getNickname());
     	
@@ -195,7 +195,7 @@ public class QuizzService {
             titleOrNicknameSpec = titleOrNicknameSpec.or(QuizzSpecifications.hasCreatorWithNickname(nickname));
         }
 
-        Specification<Quizz> commonSpec = applyCommonSpecifications(categoryLabel, levelLabel);
+        Specification<Quizz> commonSpec = applyCommonSpecifications(categoryId, levelId);
         Specification<Quizz> isVisibleSpec = QuizzSpecifications.isVisible();
 
         Specification<Quizz> finalSpec = Specification.where(titleOrNicknameSpec)
@@ -233,11 +233,11 @@ public class QuizzService {
      * @param levelLabel the level label filter (optional)
      * @return a page of `QuizzDTO` objects
      */
-    public Page<QuizzDTO> getLikedQuizzes(int userId, int page, int size, String title, String categoryLabel, String levelLabel) {
+    public Page<QuizzDTO> getLikedQuizzes(int userId, int page, int size, String title, Integer categoryId, Integer levelId) {
     	String currentUserNickname = SecurityUtils.getCurrentUser().getNickname();
     	logger.info("Entering method getLikedQuizzes: User '{}'", currentUserNickname);
     	
-    	Page<QuizzDTO> pageQuizzDTO = getFilteredQuizzes(QuizzSpecifications.isLikedByUser(userId), page, size, title, categoryLabel, levelLabel);
+    	Page<QuizzDTO> pageQuizzDTO = getFilteredQuizzes(QuizzSpecifications.isLikedByUser(userId), page, size, title, categoryId, levelId);
         logger.info("Method getLikedQuizzes: Get liked quizzes sucessfully. Current User nickname: {}",
         		currentUserNickname);
         return pageQuizzDTO;
@@ -254,11 +254,11 @@ public class QuizzService {
      * @param levelLabel the level label filter (optional)
      * @return a page of `QuizzDTO` objects
      */
-    public Page<QuizzDTO> getFavouriteQuizzes(int userId, int page, int size, String title, String categoryLabel, String levelLabel) {
+    public Page<QuizzDTO> getFavouriteQuizzes(int userId, int page, int size, String title, Integer categoryId, Integer levelId) {
     	String currentUserNickname = SecurityUtils.getCurrentUser().getNickname();
     	logger.info("Entering method getFavouriteQuizzes: User '{}'", currentUserNickname);
     	
-    	Page<QuizzDTO> pageQuizzDTO =  getFilteredQuizzes(QuizzSpecifications.isFavouritedByUser(userId), page, size, title, categoryLabel, levelLabel);
+    	Page<QuizzDTO> pageQuizzDTO =  getFilteredQuizzes(QuizzSpecifications.isFavouritedByUser(userId), page, size, title, categoryId, levelId);
     	logger.info("Method getFavouriteQuizzes: Get favourite quizzes sucessfully. Current User nickname: {}",
         		currentUserNickname);
         return pageQuizzDTO;
@@ -276,9 +276,9 @@ public class QuizzService {
      * @param levelLabel the level label filter (optional)
      * @return a page of `QuizzDTO` objects
      */
-    private Page<QuizzDTO> getFilteredQuizzes(Specification<Quizz> additionalSpec, int page, int size, String title, String categoryLabel, String levelLabel) {
+    private Page<QuizzDTO> getFilteredQuizzes(Specification<Quizz> additionalSpec, int page, int size, String title, Integer categoryId, Integer levelId) {
     	Pageable pageable = PaginationUtils.createPageableSortByDesc(page, size, "createdAt");
-        Specification<Quizz> spec = applyCommonSpecifications(title, categoryLabel, levelLabel);
+        Specification<Quizz> spec = applyCommonSpecifications(title, categoryId, levelId);
         
         if (additionalSpec != null) {
             spec = spec.and(additionalSpec);
@@ -293,19 +293,19 @@ public class QuizzService {
      * Also filters quizzes to only include those marked as visible.
      * 
      * @param title the title filter (optional)
-     * @param categoryLabel the category label filter (optional)
-     * @param levelLabel the level label filter (optional)
+     * @param categoryId the category filter (optional)
+     * @param levelId the level filter (optional)
      * @return a `Specification<Quizz>` object that can be used in repository queries
      */
-    private Specification<Quizz> applyCommonSpecifications(String title, String categoryLabel, String levelLabel) {
+    private Specification<Quizz> applyCommonSpecifications(String title, Integer categoryId, Integer levelId) {
         Specification<Quizz> spec = Specification.where(null);
         
-        if (categoryLabel != null && !categoryLabel.isBlank()) {
-            spec = spec.and(QuizzSpecifications.hasCategoryLabel(categoryLabel));
+        if (categoryId != null && categoryId<0) {
+            spec = spec.and(QuizzSpecifications.hasCategoryId(categoryId));
         }
 
-        if (levelLabel != null && !levelLabel.isBlank()) {
-            spec = spec.and(QuizzSpecifications.hasLevelLabel(levelLabel));
+        if (levelId != null && levelId<0) {
+            spec = spec.and(QuizzSpecifications.hasLevelId(levelId));
         }
         
         if (title != null && !title.isBlank()) {
@@ -318,15 +318,15 @@ public class QuizzService {
         return spec;
     }
     
-    private Specification<Quizz> applyCommonSpecifications(String categoryLabel, String levelLabel) {
+    private Specification<Quizz> applyCommonSpecifications(Integer categoryId, Integer levelId) {
         Specification<Quizz> spec = Specification.where(null);
 
-        if (categoryLabel != null && !categoryLabel.isBlank()) {
-            spec = spec.and(QuizzSpecifications.hasCategoryLabel(categoryLabel));
+        if (categoryId != null && categoryId>=0) {
+            spec = spec.and(QuizzSpecifications.hasCategoryId(categoryId));
         }
 
-        if (levelLabel != null && !levelLabel.isBlank()) {
-            spec = spec.and(QuizzSpecifications.hasLevelLabel(levelLabel));
+        if (levelId != null && levelId>=0) {
+            spec = spec.and(QuizzSpecifications.hasLevelId(levelId));
         }
 
         return spec;
