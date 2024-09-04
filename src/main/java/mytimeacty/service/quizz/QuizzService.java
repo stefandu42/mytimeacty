@@ -1,5 +1,9 @@
 package mytimeacty.service.quizz;
 
+import java.util.Comparator;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,13 +15,18 @@ import org.springframework.transaction.annotation.Transactional;
 
 import mytimeacty.exception.NotFoundException;
 import mytimeacty.exception.UserNotFoundException;
+import mytimeacty.mapper.QuizzCategoryMapper;
+import mytimeacty.mapper.QuizzLevelMapper;
 import mytimeacty.mapper.QuizzMapper;
 import mytimeacty.model.quizzes.Quizz;
 import mytimeacty.model.quizzes.QuizzAnswer;
 import mytimeacty.model.quizzes.QuizzCategory;
 import mytimeacty.model.quizzes.QuizzLevel;
 import mytimeacty.model.quizzes.QuizzQuestion;
+import mytimeacty.model.quizzes.dto.AnswerDTO;
+import mytimeacty.model.quizzes.dto.QuestionDTO;
 import mytimeacty.model.quizzes.dto.QuizzDTO;
+import mytimeacty.model.quizzes.dto.QuizzWithDetailsDTO;
 import mytimeacty.model.quizzes.dto.QuizzWithLikeAndFavouriteDTO;
 import mytimeacty.model.quizzes.dto.creation.AnswerCreateDTO;
 import mytimeacty.model.quizzes.dto.creation.QuestionCreateDTO;
@@ -64,6 +73,62 @@ public class QuizzService {
     private QuizzCategoryRepository quizzCategoryRepository;
     
     private static final Logger logger = LoggerFactory.getLogger(QuizzService.class);
+    
+    
+    /**
+     * Retrieves the details of a quizz, including its questions and answers, and returns them as a DTO.
+     * 
+     * @param quizzId the ID of the quizz to retrieve
+     * @return a QuizzWithDetailsDTO containing the quizz details, questions, and answers
+     * @throws NotFoundException if the quizz with the given ID is not found
+     */
+    public QuizzWithDetailsDTO getQuizzWithDetails(Integer quizzId) {
+    	String currentUserNickname = SecurityUtils.getCurrentUser().getNickname();
+    	logger.info("Entering method markQuizzAsHidden: User '{}'", currentUserNickname);
+    	
+    	Quizz quizz = quizzRepository.findById(quizzId)
+                .orElseThrow(() -> {
+                	logger.warn("Method getQuizzWithDetails: Quizz with ID {} not found. Current User nickname: {}",
+                			quizzId, currentUserNickname);
+                	return new NotFoundException("Quizz not found");
+                });
+
+        // Convert the Quizz entity to QuizzDTO
+        QuizzDTO quizzDTO = QuizzDTO.builder()
+                .idQuizz(quizz.getIdQuizz())
+                .title(quizz.getTitle())
+                .category(QuizzCategoryMapper.toDTO(quizz.getCategory()))
+                .level(QuizzLevelMapper.toDTO(quizz.getLevel()))
+                .build();
+
+        // Convert the questions and their answers to DTOs
+        List<QuestionDTO> questionDTOs = quizz.getQuizzQuestions().stream()
+        		.sorted(Comparator.comparingInt(QuizzQuestion::getNumQuestion))
+                .map(q -> {
+                    List<AnswerDTO> answerDTOs = q.getQuizzAnswers().stream()
+                    		.sorted(Comparator.comparingInt(QuizzAnswer::getNumAnswer))
+                            .map(a -> AnswerDTO.builder()
+                                    .idAnswer(a.getIdAnswer())
+                                    .answer(a.getAnswer())
+                                    .numAnswer(a.getNumAnswer())
+                                    .isCorrect(a.getIsCorrect())
+                                    .build())
+                            .collect(Collectors.toList());
+
+                    return QuestionDTO.builder()
+                            .idQuestion(q.getIdQuestion())
+                            .question(q.getQuestion())
+                            .numQuestion(q.getNumQuestion())
+                            .answers(answerDTOs)
+                            .build();
+                })
+                .collect(Collectors.toList());
+
+        return QuizzWithDetailsDTO.builder()
+                .quizz(quizzDTO)
+                .questions(questionDTOs)
+                .build();
+    }
     
     /**
      * Marks a quizz as hidden by setting the `isVisible` attribute to false.
@@ -229,8 +294,8 @@ public class QuizzService {
      * @param page the page number to retrieve
      * @param size the size of the page
      * @param title the title filter (optional)
-     * @param categoryLabel the category label filter (optional)
-     * @param levelLabel the level label filter (optional)
+     * @param categoryId the category filter (optional)
+     * @param levelId the level filter (optional)
      * @return a page of `QuizzDTO` objects
      */
     public Page<QuizzDTO> getLikedQuizzes(int userId, int page, int size, String title, Integer categoryId, Integer levelId) {
@@ -250,8 +315,8 @@ public class QuizzService {
      * @param page the page number to retrieve
      * @param size the size of the page
      * @param title the title filter (optional)
-     * @param categoryLabel the category label filter (optional)
-     * @param levelLabel the level label filter (optional)
+     * @param categoryId the category filter (optional)
+     * @param levelId the level filter (optional)
      * @return a page of `QuizzDTO` objects
      */
     public Page<QuizzDTO> getFavouriteQuizzes(int userId, int page, int size, String title, Integer categoryId, Integer levelId) {
@@ -272,8 +337,8 @@ public class QuizzService {
      * @param page the page number to retrieve
      * @param size the size of the page
      * @param title the title filter (optional)
-     * @param categoryLabel the category label filter (optional)
-     * @param levelLabel the level label filter (optional)
+     * @param categoryId the category filter (optional)
+     * @param levelId the level filter (optional)
      * @return a page of `QuizzDTO` objects
      */
     private Page<QuizzDTO> getFilteredQuizzes(Specification<Quizz> additionalSpec, int page, int size, String title, Integer categoryId, Integer levelId) {

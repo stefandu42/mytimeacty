@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 import jakarta.validation.Valid;
 import mytimeacty.annotation.RolesAllowed;
 import mytimeacty.model.quizzes.dto.QuizzDTO;
+import mytimeacty.model.quizzes.dto.QuizzWithDetailsDTO;
 import mytimeacty.model.quizzes.dto.QuizzWithLikeAndFavouriteDTO;
 import mytimeacty.model.quizzes.dto.creation.QuizzCreateDTO;
 import mytimeacty.service.quizz.QuizzFavouriteService;
@@ -40,6 +41,14 @@ public class QuizzController {
     private QuizzService quizzService;
 	
 	private static final Logger logger = LoggerFactory.getLogger(QuizzController.class);
+	
+	@GetMapping("/{quizzId}")
+    public ResponseEntity<QuizzWithDetailsDTO> getQuizzWithDetails(
+            @PathVariable Integer quizzId) {
+
+        QuizzWithDetailsDTO quizzWithDetails = quizzService.getQuizzWithDetails(quizzId);
+        return ResponseEntity.status(HttpStatus.OK).body(quizzWithDetails);
+    }
 	
 	/**
      * Creates a new quizz.
