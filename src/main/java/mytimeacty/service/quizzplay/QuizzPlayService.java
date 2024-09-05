@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,12 +16,15 @@ import org.springframework.transaction.annotation.Transactional;
 import mytimeacty.exception.NotFoundException;
 import mytimeacty.exception.IllegalArgumentException;
 import mytimeacty.mapper.QuizzPlayMapper;
+import mytimeacty.mapper.UserAnswerMapper;
 import mytimeacty.model.quizzes.Quizz;
 import mytimeacty.model.quizzes.QuizzAnswer;
 import mytimeacty.model.quizzes.QuizzQuestion;
 import mytimeacty.model.quizzplay.QuizzPlay;
 import mytimeacty.model.quizzplay.UserAnswer;
 import mytimeacty.model.quizzplay.dto.QuizzPlayDTO;
+import mytimeacty.model.quizzplay.dto.QuizzPlayWithAnswerDTO;
+import mytimeacty.model.quizzplay.dto.UserAnswerDTO;
 import mytimeacty.model.quizzplay.dto.creation.UserAnswerCreateDTO;
 import mytimeacty.model.users.User;
 import mytimeacty.repository.UserRepository;
@@ -75,6 +77,37 @@ public class QuizzPlayService {
         logger.info("Method getQuizzPlaysByQuizz: Get quizz plays of quizz with ID {} created sucessfully. Current User nickname: {}",
         		quizzId, currentUserNickname);
         return pageQuizzPlayDTO;
+    }
+    
+    
+    /**
+     * Retrieves a quizz play with all its answers.
+     *
+     * @param quizzPlayId the ID of the quizz play to be retrieved
+     * @return quizz play dto with its answers
+     * @throws NotFoundException if the quizz play is not found
+     */
+    public QuizzPlayWithAnswerDTO getQuizzPlayByIdWithDetails(int quizzPlayId) {
+    	String currentUserNickname = SecurityUtils.getCurrentUser().getNickname();
+    	logger.info("Entering method getQuizzPlaysByQuizz: User '{}'", currentUserNickname);
+    	
+    	QuizzPlay quizzPlay = quizzPlayRepository.findById(quizzPlayId)
+		        .orElseThrow(() -> {
+		        	logger.warn("Method getAnswersByQuizzPlay: Quizz Play with ID {} not found. Current User nickname: {}",
+		        			quizzPlayId, currentUserNickname);
+		        	return new NotFoundException("Quizz Play not found");
+		        });
+    	
+    	List<UserAnswerDTO> userAnswerDTO = userAnswerRepository.findByQuizzPlayIdQuizzPlay(quizzPlayId)
+    			.stream()
+    			.map(UserAnswerMapper::toDTO)
+    			.collect(Collectors.toList());
+    	
+        
+        logger.info("Method getAnswersByQuizzPlay: Answers for quizz play with ID {} retrieved sucessfully. Current User nickname: {}",
+        		quizzPlayId, currentUserNickname);
+        
+        return QuizzPlayMapper.withAnswerstoDTO(quizzPlay, userAnswerDTO);
     }
 
     /**

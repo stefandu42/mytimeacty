@@ -16,10 +16,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import mytimeacty.model.quizzplay.dto.QuizzPlayDTO;
-import mytimeacty.model.quizzplay.dto.UserAnswerDTO;
+import mytimeacty.model.quizzplay.dto.QuizzPlayWithAnswerDTO;
 import mytimeacty.model.quizzplay.dto.creation.UserAnswerCreateDTO;
 import mytimeacty.service.quizzplay.QuizzPlayService;
-import mytimeacty.service.quizzplay.UserAnswerService;
 import mytimeacty.utils.SecurityUtils;
 
 import org.springframework.data.domain.Page;
@@ -30,9 +29,6 @@ public class QuizzPlayController {
 	
 	@Autowired
     private QuizzPlayService quizzPlayService;
-	
-	@Autowired
-    private UserAnswerService userAnswerService;
 	
 	private static final Logger logger = LoggerFactory.getLogger(QuizzPlayController.class);
     
@@ -76,18 +72,18 @@ public class QuizzPlayController {
     }
     
     /**
-     * Retrieves the list of user answers for a specific quizz play.
+     * Retrieves the quizz play with its answers
      * 
-     * @param quizzPlayId the ID of the quizz play for which the answers are being retrieved.
-     * @return a ResponseEntity containing a list of UserAnswerDTO objects and HTTP status 200 OK.
+     * @param quizzPlayId the ID of the quizz play for which the quizz play and its answers are being retrieved.
+     * @return a ResponseEntity containing the quizz dto and HTTP status 200 OK.
      */
     @GetMapping("/{quizzPlayId}/answers")
-    public ResponseEntity<List<UserAnswerDTO>> getUserAnswersByQuizzPlay(
+    public ResponseEntity<QuizzPlayWithAnswerDTO> getQuizzPlayWithAnswers(
             @PathVariable int quizzPlayId) {
 
-        List<UserAnswerDTO> userAnswerDTOs = userAnswerService.getAnswersByQuizzPlay(quizzPlayId);
+        QuizzPlayWithAnswerDTO quizzPlayDTO = quizzPlayService.getQuizzPlayByIdWithDetails(quizzPlayId);
         logger.info("User with the nickname '{}' has successfully retrieved the user answers for the quizz play with id '{}'", 
         		SecurityUtils.getCurrentUser().getNickname(), quizzPlayId);
-        return ResponseEntity.status(HttpStatus.OK).body(userAnswerDTOs);
+        return ResponseEntity.status(HttpStatus.OK).body(quizzPlayDTO);
     }
 }

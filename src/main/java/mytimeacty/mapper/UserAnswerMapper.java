@@ -17,7 +17,6 @@ public class UserAnswerMapper {
         }
         return UserAnswerDTO.builder()
         		.idUserAnswer(userAnswer.getIdUserAnswer())
-        		.quizzPlayId(userAnswer.getQuizzPlay().getIdQuizzPlay())
         		.answerId(userAnswer.getAnswer().getIdAnswer())
         		.build();
     }

@@ -1,7 +1,10 @@
 package mytimeacty.model.quizzes;
 
+import java.util.Set;
+
 import jakarta.persistence.*;
 import lombok.*;
+import mytimeacty.model.quizzplay.UserAnswer;
 
 @Data
 @NoArgsConstructor
@@ -28,4 +31,7 @@ public class QuizzAnswer {
 
     @Column(name = "is_correct", nullable = false)
     private Boolean isCorrect;
+    
+    @OneToMany(mappedBy = "answer", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private Set<UserAnswer> userAnswers;
 }

@@ -7,7 +7,6 @@ import lombok.Data;
 @Builder
 public class UserAnswerDTO {
     private Integer idUserAnswer;
-    private Integer quizzPlayId;
     private Integer answerId;
 }
 

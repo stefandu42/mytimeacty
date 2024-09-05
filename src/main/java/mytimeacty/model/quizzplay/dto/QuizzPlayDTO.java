@@ -1,16 +1,16 @@
 package mytimeacty.model.quizzplay.dto;
 
 import java.time.Instant;
-
-import lombok.Builder;
 import lombok.Data;
+import lombok.experimental.SuperBuilder;
+import mytimeacty.model.users.dto.UserDTO;
 
 @Data
-@Builder
+@SuperBuilder
 public class QuizzPlayDTO {
     private Integer idQuizzPlay;
     private Integer quizzId;
-    private Integer playerId;
+    private UserDTO player;
     private Double score;
     private Instant playedAt;
 }
