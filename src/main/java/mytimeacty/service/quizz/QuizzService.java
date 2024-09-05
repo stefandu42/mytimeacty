@@ -99,6 +99,9 @@ public class QuizzService {
                 .title(quizz.getTitle())
                 .category(QuizzCategoryMapper.toDTO(quizz.getCategory()))
                 .level(QuizzLevelMapper.toDTO(quizz.getLevel()))
+                .createdAt(quizz.getCreatedAt())
+                .creatorId(quizz.getCreator().getIdUser())
+                .creatorNickname(quizz.getCreator().getNickname())
                 .build();
 
         // Convert the questions and their answers to DTOs
