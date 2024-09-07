@@ -11,4 +11,7 @@ public class UserProfileDTO {
     private String email;
     private Integer followersCount;
     private Integer followingCount;
+    private Integer createdQuizzesCount;
+    private Integer likedQuizzCount;
+    private Boolean isFollowing;
 }

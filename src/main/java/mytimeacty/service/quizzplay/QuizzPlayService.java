@@ -117,11 +117,12 @@ public class QuizzPlayService {
      *
      * @param quizzId the ID of the quizz being played
      * @param userAnswerCreateDTOs a list of `UserAnswerCreateDTO` objects representing the user's answers
+     * @return 
      * @throws NotFoundException if the quizz or any answer is not found
      * @throws IllegalArgumentException if not all questions have been answered or if an answer does not belong to the quizz
      */
     @Transactional
-    public void handleUserAnswers(int quizzId, List<UserAnswerCreateDTO> userAnswerCreateDTOs) {
+    public QuizzPlayDTO handleUserAnswers(int quizzId, List<UserAnswerCreateDTO> userAnswerCreateDTOs) {
     	String currentUserNickname = SecurityUtils.getCurrentUser().getNickname();
     	logger.info("Entering method handleUserAnswers: User '{}'", currentUserNickname);
     	
@@ -222,6 +223,8 @@ public class QuizzPlayService {
         
         logger.info("Method handleUserAnswers: Answers for quizz play with ID {} created sucessfully. Current User nickname: {}",
         		quizzPlay.getIdQuizzPlay(), currentUserNickname);
+        
+        return QuizzPlayMapper.toDTO(quizzPlay);
     }
 
     

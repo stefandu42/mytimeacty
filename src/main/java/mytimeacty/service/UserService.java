@@ -26,6 +26,7 @@ import mytimeacty.model.users.enums.UserRole;
 import mytimeacty.repository.FollowerRepository;
 import mytimeacty.repository.UserRepository;
 import mytimeacty.repository.quizz.QuizzLikeRepository;
+import mytimeacty.repository.quizz.QuizzRepository;
 import mytimeacty.service.Bcrypt.BcryptService;
 import mytimeacty.utils.PaginationUtils;
 import mytimeacty.utils.SecurityUtils;
@@ -43,6 +44,9 @@ public class UserService {
     
     @Autowired
     private QuizzLikeRepository quizzLikeRepository;
+    
+    @Autowired
+    private QuizzRepository quizzRepository;
     
     @Autowired
     private FollowerRepository followerRepository;
@@ -181,9 +185,23 @@ public class UserService {
 					return new UserNotFoundException("User not found");
 				});
 
-        // get the number of followers and subscriptions
+        
         int followersCount = (int) followerRepository.countByUserFollowed(user);
         int followingCount = (int) followerRepository.countByFollower(user);
+        int createdQuizzesCount = (int) quizzRepository.countByCreatorAndIsVisible(user, true);
+        int likedQuizzCount = (int) quizzLikeRepository.countByQuizzCreatorAndQuizzIsVisible(user, true);
+        boolean isFollowing=false;
+        if(userId!=SecurityUtils.getCurrentUser().getIdUser()) {
+        	User currentUser = userRepository.findById(SecurityUtils.getCurrentUser().getIdUser())
+    		        .orElseThrow(() -> {
+    					logger.warn("Method getUserProfile: User with ID {} not found. Current User nickname: {}",
+    							userId, currentUserNickname);
+    					return new UserNotFoundException("User not found");
+    				});
+        	isFollowing = followerRepository.existsByFollowerAndUserFollowed(currentUser, user);
+        }
+        
+        
 
         UserProfileDTO userProfile = UserProfileDTO.builder()
                 .userId(user.getIdUser())
@@ -191,6 +209,9 @@ public class UserService {
                 .email(user.getEmail())
                 .followersCount(followersCount)
                 .followingCount(followingCount)
+                .createdQuizzesCount(createdQuizzesCount)
+                .likedQuizzCount(likedQuizzCount)
+                .isFollowing(isFollowing)
                 .build();
         
         logger.info("Method getUserProfile: User profile with ID {} retrieved sucessfully. Current User nickname: {}", userId, currentUserNickname);

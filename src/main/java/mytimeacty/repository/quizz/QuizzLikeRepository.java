@@ -20,4 +20,6 @@ public interface QuizzLikeRepository extends JpaRepository<QuizzLike, QuizzLikeI
 	long countByUser(User user);
 	
 	boolean existsByQuizzAndUser(Quizz quizz, User user);
+	
+	long countByQuizzCreatorAndQuizzIsVisible(User user, Boolean isVisible);
 }

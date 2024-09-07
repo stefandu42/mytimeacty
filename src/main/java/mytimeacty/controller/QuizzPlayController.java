@@ -40,14 +40,14 @@ public class QuizzPlayController {
      * @return a ResponseEntity with a success message and HTTP status 201 Created.
      */
     @PostMapping("/quizzes/{quizzId}")
-    public ResponseEntity<String> submitUserAnswers(
+    public ResponseEntity<QuizzPlayDTO> submitUserAnswers(
             @PathVariable int quizzId, 
             @RequestBody List<UserAnswerCreateDTO> userAnswerCreateDTOs) {
 
-        quizzPlayService.handleUserAnswers(quizzId, userAnswerCreateDTOs);
+        QuizzPlayDTO quizzPlay= quizzPlayService.handleUserAnswers(quizzId, userAnswerCreateDTOs);
         logger.info("User with the nickname '{}' has successfully answered the quizz with id '{}'", 
         		SecurityUtils.getCurrentUser().getNickname(), quizzId);
-        return ResponseEntity.status(HttpStatus.CREATED).body("Quizz play and answers created successfully.");
+        return ResponseEntity.status(HttpStatus.CREATED).body(quizzPlay);
     }
     
     /**
